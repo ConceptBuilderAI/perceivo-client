@@ -29,7 +29,7 @@ classifiers = [
 # Deliberately minimal — a REST client needs only httpx + pydantic (for the
 # generated typed models). Independent of the `perceivo` framework package.
 dependencies = [
-    "httpx>=0.27.0",
+    "httpx>=0.28.1",
     "pydantic>=2.10.0",
 ]
 
