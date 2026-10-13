@@ -43,7 +43,7 @@ dev = [
     # clean venv. A packaging test that runs against the source tree (or against
     # `pip install -e`) is exactly the defect it exists to catch, so the builder
     # is a test dependency, not an optional convenience.
-    "build>=1.0",
+    "build>=1.6.1",
     # tests/test_check_workflow_policy.py parses the workflows with the same
     # parser scripts/check_workflow_policy.py uses in CI and release.yml.
     "pyyaml>=6.0",
