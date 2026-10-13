@@ -37,7 +37,7 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=5.0.0",
-    "respx>=0.21.0",
+    "respx>=0.23.1",
     "ruff==0.15.12",
     # tests/test_signing_packaging.py builds a real wheel and installs it into a
     # clean venv. A packaging test that runs against the source tree (or against
