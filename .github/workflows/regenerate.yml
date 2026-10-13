@@ -1,0 +1,134 @@
+# Regenerate perceivo_client/generated/models/ in a runner and hand the result
+# back as a patch artifact. Nothing in this workflow can write to the repository.
+#
+# Why this exists: `openapi/regen.py` refuses to run unless the generator and its
+# two formatters are installed at exactly the versions recorded in
+# openapi/spec_provenance.json (datamodel-code-generator, black, isort). A
+# machine that lacks them, or may not install packages,
+# cannot regenerate. ci.yml already installs the `[codegen]` extra, but only to
+# run `regen.py --check`; nothing here could PRODUCE the files. This workflow
+# does, from the vendored spec already committed on the target branch.
+#
+# Usage:
+#   gh workflow run regenerate.yml --ref <your work branch> -f branch=<your work branch>
+#   gh run download <run id> -n regenerated-models -D "$TMPDIR/regen"
+#   git apply --index "$TMPDIR/regen/models.patch"   # then commit and push yourself
+# The two names must match: the guard refuses a dispatch whose ref is not
+# refs/heads/<branch>. Branch code therefore runs in that branch's own Actions
+# cache scope, never in the default branch's, where it could plant cache
+# entries every other run restores. The workflow file itself must exist on the
+# work branch. No artifact is
+# uploaded when the committed models already equal the generator output.
+#
+# Why there is no commit job: the workflow policy in
+# scripts/check_workflow_policy.py allows
+# `contents: write` only on release.yml job github-release.
+#
+# Design, and the property each part protects:
+#   * guard      -- read-only; refuses dev, main, the default branch, release
+#                   and release/*, refs/*, any non-plain branch name, and a
+#                   dispatch ref other than refs/heads/<branch>
+#                   (.github/scripts/regen_dispatch_guard.py). `regenerate`
+#                   `needs:` it, so a refused input runs no branch code.
+#   * regenerate -- read-only token, credentials NOT persisted. Its tools come
+#                   from .github/requirements-codegen.txt, wheels only,
+#                   every one hash-verified; the package itself is not
+#                   installed. It proves the result with `regen.py --check`,
+#                   refuses any change outside perceivo_client/generated/models/,
+#                   and uploads the diff as the `regenerated-models` artifact.
+#
+# Every `${{ }}` reaches a shell through `env:`, never inside `run:`.
+name: Regenerate models
+
+run-name: Regenerate models on ${{ inputs.branch }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Existing work branch to regenerate and commit to (never dev, main or release/*)"
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: client-regenerate-${{ inputs.branch }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Refuse a protected target branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the target branch
+        env:
+          REGEN_BRANCH: ${{ inputs.branch }}
+          REGEN_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REGEN_REF: ${{ github.ref }}
+        run: python3 .github/scripts/regen_dispatch_guard.py
+
+  regenerate:
+    name: Regenerate from the vendored spec
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      head: ${{ steps.diff.outputs.head }}
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      # No `ref:`: this checks out the dispatched commit (github.sha on
+      # github.ref), which the guard has proven is refs/heads/<branch>.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.11"
+      - name: Install the hash-locked codegen toolchain
+        run: >-
+          python -m pip install --only-binary :all: --require-hashes
+          -r .github/requirements-codegen.txt
+      - name: Regenerate, then prove the tree equals the generator output
+        run: |
+          python openapi/regen.py
+          python openapi/regen.py --check
+      - name: Stage the models and refuse any other change
+        id: diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "head=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git add --all -- perceivo_client/generated/models
+          other=$(git status --porcelain --untracked-files=all -- . ':(exclude)perceivo_client/generated/models')
+          if [ -n "$other" ]; then
+            echo "::error::regeneration changed files outside perceivo_client/generated/models/:"
+            echo "$other"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/regen"
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The committed models already equal the generator output; nothing to commit."
+          else
+            git diff --cached --binary --no-renames > "$RUNNER_TEMP/regen/models.patch"
+            git diff --cached --stat
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload the patch
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: regenerated-models
+          path: ${{ runner.temp }}/regen/models.patch
+          if-no-files-found: error
+          retention-days: 1
+

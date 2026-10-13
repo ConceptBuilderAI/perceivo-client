@@ -1,0 +1,151 @@
+[build-system]
+# setuptools 77 is the first release that reads a PEP 639 SPDX `license`
+# string; the release build installs the hash-pinned 84.0.0 from
+# .github/requirements-build.txt.
+requires = ["setuptools>=77.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "perceivo-client"
+version = "1.0.0"
+description = "Public REST client SDK for the Perceivo Platform API (/v1)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "ConceptBuilder AI LLC", email = "support@perceivo.ai" }]
+keywords = ["perceivo", "api", "sdk", "rest", "client", "ai", "orchestration"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+# Deliberately minimal — a REST client needs only httpx + pydantic (for the
+# generated typed models). Independent of the `perceivo` framework package.
+dependencies = [
+    "httpx>=0.27.0",
+    "pydantic>=2.10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "respx>=0.21.0",
+    "ruff==0.15.12",
+    # tests/test_signing_packaging.py builds a real wheel and installs it into a
+    # clean venv. A packaging test that runs against the source tree (or against
+    # `pip install -e`) is exactly the defect it exists to catch, so the builder
+    # is a test dependency, not an optional convenience.
+    "build>=1.0",
+    # tests/test_check_workflow_policy.py parses the workflows with the same
+    # parser scripts/check_workflow_policy.py uses in CI and release.yml.
+    "pyyaml>=6.0",
+]
+# Tools needed only to regenerate the client from the OpenAPI spec. Pinned
+# exactly (unlike everything above) so that "regenerate and diff" is a
+# meaningful check against the committed perceivo_client/generated/models/.
+#
+# black and isort are the generator's formatters: they decide bytes in
+# generated/models/ just as the generator does, so they are pinned exactly too.
+# These are the versions that reproduce the committed models; they are recorded
+# in openapi/spec_provenance.json and `openapi/regen.py --check` exits 2 when an
+# installed one differs. Moving any of the three is a regeneration, reviewed as
+# one, never a dependency refresh.
+codegen = [
+    "datamodel-code-generator[http]==0.83.0",
+    "black==26.5.1",
+    "isort==8.0.1",
+]
+
+[project.urls]
+Homepage = "https://perceivo.ai/docs"
+Documentation = "https://perceivo.ai/docs"
+Repository = "https://github.com/ConceptBuilderAI/perceivo-client"
+Issues = "https://github.com/ConceptBuilderAI/perceivo-client/issues"
+Changelog = "https://github.com/ConceptBuilderAI/perceivo-client/blob/HEAD/CHANGELOG.md"
+
+# Package discovery is scoped to `perceivo_client` and its subpackages.
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["perceivo_client*"]
+
+[tool.setuptools.package-data]
+perceivo_client = ["py.typed", "generated/*.py"]
+# The golden signing vectors ship as package data so that any implementation
+# can validate against the installed table. tests/test_signing_packaging.py
+# builds a real wheel and fails if the table is not in it.
+"perceivo_client.signing" = ["vectors/*.json"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM", "RUF"]
+extend-ignore = [
+    "B008",
+    "B904",
+    "E501",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "UP045",
+    "UP035",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Generated code is exempt from hand-written style rules.
+"perceivo_client/generated/*" = ["ALL"]
+"perceivo_client/**/__init__.py" = ["F401"]
+# The grant-terminology scanners are hash-pinned by tests/test_legacy_repo_scan.py
+# and keep the byte layout they were written in, so they are not reformatted to
+# this repository's lint rules; their two test modules and their fixture helper
+# tests/_gitrepo.py are kept in the same style.
+"tests/_gitrepo.py" = ["ALL"]
+"scripts/grant_terminology_scan.py" = ["ALL"]
+"scripts/legacy_code_scan.py" = ["ALL"]
+# The ratchet is hash-pinned to its own
+# text (CANONICAL_SHA256); it and its self-test keep the byte layout.
+"scripts/check_file_size.py" = ["ALL"]
+"scripts/tests/test_check_file_size.py" = ["ALL"]
+"tests/test_grant_terminology_scan.py" = ["ALL"]
+"tests/test_legacy_code_scan.py" = ["ALL"]
+
+[tool.ruff.format]
+# Generated models retain the code generator's formatting; the hash-pinned
+# grant-terminology scanners keep their bytes (see per-file-ignores above).
+exclude = [
+    "perceivo_client/generated/**",
+    "tests/_gitrepo.py",
+    "scripts/grant_terminology_scan.py",
+    "scripts/legacy_code_scan.py",
+    "scripts/check_file_size.py",
+    "scripts/tests/test_check_file_size.py",
+    "tests/test_grant_terminology_scan.py",
+    "tests/test_legacy_code_scan.py",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Bare `--cov` (no `--cov=<pkg>`) so coverage uses [tool.coverage.run]
+# source_pkgs + relative_files, yielding repository-root-relative,
+# package-qualified filenames in the XML.
+addopts = "--cov --cov-branch --cov-report=term-missing"
+
+[tool.coverage.run]
+# source_pkgs (not source dirs) + relative_files so coverage.xml carries
+# repository-root-relative, package-qualified filenames
+# (`perceivo_client/...`). Driven by a bare `--cov` (see addopts / CI).
+source_pkgs = ["perceivo_client"]
+branch = true
+relative_files = true
+# Code-generated models are exempt.
+# Match on `*/generated/*` so the omit holds regardless of the CWD-rooted prefix.
+omit = ["*/generated/*"]

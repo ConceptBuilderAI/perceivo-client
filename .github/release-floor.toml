@@ -1,0 +1,4 @@
+# tests/test_release_workflow_structure.py refuses any declared version at or
+# below this floor.
+schema_version = 1
+highest_client_version = "0.25.4"
