@@ -1,0 +1,351 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+# Read-only by default. No job in this workflow reads a secret, and no job
+# needs write access to the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: client-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-quality:
+    name: Source, coverage, and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install test and build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,codegen]" build
+      - name: Lint source and controls at the exact pinned Ruff
+        run: |
+          ruff --version
+          ruff check .
+          ruff format --check .
+      - name: Refuse internal leftovers in the public source tree
+        run: python scripts/verify_public_tree.py tree --root .
+      - name: Run full suite with branch coverage
+        run: >-
+          pytest tests
+          -o addopts=""
+          --cov --cov-branch
+          --cov-config=pyproject.toml
+          --cov-report=xml:coverage.xml
+          --cov-report=term
+          --cov-fail-under=97
+      - name: Prove vendored OpenAPI provenance and wrapper/spec drift
+        run: >-
+          pytest tests/test_spec_provenance.py tests/test_spec_conformance.py
+          -o addopts="" -p no:cacheprovider
+      - name: Prove the committed models are what the generator produces from the vendored spec
+        # `--check` regenerates into a temporary directory and byte-compares it
+        # with perceivo_client/generated/models/, and compares the vendored
+        # spec's hash with the provenance. It needs no API source checkout, so
+        # it proves "the models equal the spec", not "the spec is fresh"; the
+        # freshness leg is release evidence (RELEASING.md). The second command
+        # runs the must-fail controls with the generator REQUIRED, so they
+        # cannot skip in the one job that installs it.
+        env:
+          PERCEIVO_REGEN_CHECK_REQUIRED: "1"
+        run: |
+          python openapi/regen.py --check
+          pytest tests/test_regen_check.py -o addopts="" -p no:cacheprovider -rs
+      - name: Build source and wheel distributions
+        run: python -m build --sdist --wheel
+      # The SAME hash-pinned twine closure build-distributions.yml installs, in
+      # its own venv, on this job's Python 3.11 (the canonical build proves it
+      # on 3.12.14).
+      - name: Check distribution metadata with the pinned twine
+        shell: bash
+        run: |
+          set -euo pipefail
+          venv="$RUNNER_TEMP/twine-check"
+          python -m venv "$venv"
+          "$venv/bin/python" -m pip install --only-binary :all: \
+            --require-hashes -r .github/requirements-twine.txt
+          "$venv/bin/python" -m twine check --strict dist/*
+      - name: Upload candidate artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: client-distributions
+          path: dist/*
+          if-no-files-found: error
+
+  clean-artifact:
+    name: Clean ${{ matrix.kind }} install
+    needs: source-quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        kind: [sdist, wheel]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: client-distributions
+          path: dist
+      - name: Install and verify outside the checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PYTHONPATH
+          export PYTHONNOUSERSITE=1
+          version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          if [ "${{ matrix.kind }}" = "wheel" ]; then
+            artifact=$(find "$GITHUB_WORKSPACE/dist" -name 'perceivo_client-*.whl' -print -quit)
+          else
+            artifact=$(find "$GITHUB_WORKSPACE/dist" -name 'perceivo_client-*.tar.gz' -print -quit)
+          fi
+          test -n "$artifact"
+          venv="$RUNNER_TEMP/client-${{ matrix.kind }}"
+          python -m venv "$venv"
+          "$venv/bin/python" -m pip install --upgrade pip
+          # Deliberately NOT an editable install: an editable install resolves
+          # back to this checkout and proves nothing about the artifact.
+          "$venv/bin/python" -m pip install "$artifact"
+          cd "$RUNNER_TEMP"
+          "$venv/bin/python" -m pip check
+          "$venv/bin/python" -c "import pathlib, perceivo_client, sys; p = pathlib.Path(perceivo_client.__file__).resolve(); print(p); assert 'site-packages' in p.parts, p; assert str(p).startswith(sys.prefix), (p, sys.prefix)"
+          "$venv/bin/python" "$GITHUB_WORKSPACE/.github/scripts/verify_installed_client.py" \
+            --expected-version "$version" \
+            --expected-artifact "$artifact"
+
+  sdist-suite:
+    # Deliberately no `actions/checkout`: the suite runs from the unpacked
+    # source distribution and nothing else. With a checkout present, a test that
+    # reads a repository path the sdist does not ship would still resolve it,
+    # and the job would pass without proving the sdist is self-contained.
+    name: Full suite from the unpacked sdist
+    needs: source-quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: client-distributions
+          path: dist
+      - name: Unpack the sdist outside any checkout and run its complete suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PYTHONPATH
+          export PYTHONNOUSERSITE=1
+          sdist=$(find "$GITHUB_WORKSPACE/dist" -name 'perceivo_client-*.tar.gz' -print -quit)
+          test -n "$sdist"
+          unpacked="$RUNNER_TEMP/sdist-suite"
+          mkdir -p "$unpacked"
+          tar -xzf "$sdist" -C "$unpacked"
+          root=$(find "$unpacked" -mindepth 1 -maxdepth 1 -type d -print -quit)
+          test -n "$root"
+          venv="$RUNNER_TEMP/sdist-suite-venv"
+          python -m venv "$venv"
+          "$venv/bin/python" -m pip install --upgrade pip
+          # Install the artifact itself, non-editable, plus the test runner. The
+          # suite then runs from the unpacked tree against the installed package.
+          "$venv/bin/python" -m pip install "$sdist"
+          "$venv/bin/python" -m pip install pytest pytest-cov respx build
+          "$venv/bin/python" -m pip check
+          cd "$root"
+          # No -x and no -k: a subset that stops early cannot prove the suite
+          # runs. A collection error exits 2 and `set -e` fails the job here.
+          "$venv/bin/python" -m pytest tests \
+            -o addopts="" --import-mode=append -p no:cacheprovider \
+            --junitxml="$RUNNER_TEMP/sdist-suite.xml"
+          # Floor on the collected count. Without it, a future MANIFEST change
+          # that ships no tests at all would exit 0 and read as a pass: pytest
+          # exits 5 on "no tests collected", but `-p no:cacheprovider` plus a
+          # partial `tests/` tree can still collect a handful and exit 0.
+          "$venv/bin/python" -c "import sys, xml.etree.ElementTree as ET; s = ET.parse(sys.argv[1]).getroot().find('testsuite'); assert s is not None, 'no <testsuite> element'; c = {k: int(s.get(k, 0)) for k in ('tests', 'errors', 'failures', 'skipped')}; print(c); assert c['errors'] == 0 and c['failures'] == 0, c; assert c['tests'] - c['skipped'] >= 1400, c" "$RUNNER_TEMP/sdist-suite.xml"
+
+  dependency-floor:
+    name: Dependency floors on Python ${{ matrix.python-version }}
+    needs: source-quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: client-distributions
+          path: dist
+      - name: Test installed wheel at exact declared floors
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PYTHONPATH
+          export PYTHONNOUSERSITE=1
+          version=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          wheel=$(find "$GITHUB_WORKSPACE/dist" -name 'perceivo_client-*.whl' -print -quit)
+          test -n "$wheel"
+          venv="$RUNNER_TEMP/client-floor"
+          python -m venv "$venv"
+          "$venv/bin/python" -m pip install --upgrade pip
+          "$venv/bin/python" -m pip install \
+            'pydantic==2.10.0' 'httpx==0.27.0' 'typing-extensions==4.12.2' \
+            pytest pytest-cov respx build pyyaml
+          "$venv/bin/python" -m pip install --no-deps --force-reinstall "$wheel"
+          "$venv/bin/python" -m pip check
+          cp -a "$GITHUB_WORKSPACE" "$RUNNER_TEMP/perceivo-client-floor-source"
+          cd "$RUNNER_TEMP"
+          "$venv/bin/python" "$GITHUB_WORKSPACE/.github/scripts/verify_installed_client.py" \
+            --expected-version "$version" \
+            --expected-artifact "$wheel"
+          "$venv/bin/python" -m pytest \
+            "$RUNNER_TEMP/perceivo-client-floor-source/tests" \
+            -o addopts="" --import-mode=append
+
+  build:
+    name: Build
+    needs: source-quality
+    permissions:
+      contents: read
+    # The canonical build lives in build-distributions.yml so that release.yml
+    # uploads the output of exactly this job definition. It archives the source
+    # head, not the synthetic pull-request merge commit.
+    uses: ./.github/workflows/build-distributions.yml
+
+  workflow-policy:
+    name: Workflow policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Check every workflow and the release closure
+        run: |
+          python -m pip install --only-binary :all: "pyyaml==6.0.3"
+          python scripts/check_workflow_policy.py --root .
+
+  file-size-ratchet:
+    # Protocol 3: no new source file over 500 lines, and no growth of one that
+    # already is. The job name is the fleet's required-context name.
+    name: file-size-ratchet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # merge-base and HEAD^1 need full history
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      # Verify the instrument, then trust its verdict.
+      - name: Protocol 3 ratchet self-test
+        run: python -m unittest discover -s scripts/tests -p 'test_check_file_size.py' -v
+      - name: Protocol 3 file-size ratchet
+        run: python scripts/check_file_size.py
+
+  release-tag-selftest:
+    name: Release tag self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Accept the tag this commit would be released under
+        run: |
+          # A local-only tag on the checked-out commit; nothing is pushed.
+          tag="v$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          git tag "$tag" HEAD
+          python scripts/check_release_tag.py --tag "$tag" --commit "$(git rev-parse HEAD)" --main-ref HEAD
+      - name: Refuse tags that are not the release version in normal form
+        run: |
+          head="$(git rev-parse HEAD)"
+          version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          for bad in "${version}" "v${version}-rc.1" "v${version}.rc1" "v0${version}" "v9${version}"; do
+            git tag "$bad" HEAD
+            if python scripts/check_release_tag.py --tag "$bad" --commit "$head" --main-ref HEAD; then
+              echo "tag $bad was accepted"; exit 1
+            fi
+          done
+
+  install-smoke:
+    name: Install smoke (${{ matrix.archive }})
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        archive: [wheel, sdist]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: distributions
+          path: dist
+      - name: Verify the files against the build job's outputs
+        env:
+          WHEEL_NAME: ${{ needs.build.outputs.wheel_name }}
+          WHEEL_SHA256: ${{ needs.build.outputs.wheel_sha256 }}
+          SDIST_NAME: ${{ needs.build.outputs.sdist_name }}
+          SDIST_SHA256: ${{ needs.build.outputs.sdist_sha256 }}
+        run: |
+          set -euo pipefail
+          for digest in "$WHEEL_SHA256" "$SDIST_SHA256"; do
+            [[ "$digest" =~ ^[0-9a-f]{64}$ ]] || { echo "build output is not a sha256: '$digest'"; exit 1; }
+          done
+          [[ "$WHEEL_NAME" =~ ^[A-Za-z0-9_.+-]+\.whl$ ]] || { echo "bad wheel name output: '$WHEEL_NAME'"; exit 1; }
+          [[ "$SDIST_NAME" =~ ^[A-Za-z0-9_.+-]+\.tar\.gz$ ]] || { echo "bad sdist name output: '$SDIST_NAME'"; exit 1; }
+          test "$(ls -A dist | wc -l)" -eq 2
+          printf '%s  %s\n%s  %s\n' "$WHEEL_SHA256" "$WHEEL_NAME" "$SDIST_SHA256" "$SDIST_NAME" > expected.sha256
+          (cd dist && sha256sum --strict -c ../expected.sha256)
+      - name: Select and install one archive
+        env:
+          ARCHIVE_KIND: ${{ matrix.archive }}
+        run: |
+          if [ "$ARCHIVE_KIND" = wheel ]; then
+            artifact=$(find dist -maxdepth 1 -name '*.whl' -print -quit)
+          else
+            artifact=$(find dist -maxdepth 1 -name '*.tar.gz' -print -quit)
+          fi
+          test -n "$artifact"
+          python -m pip install "$artifact"
+      - name: Verify installed metadata and import origin
+        env:
+          EXPECTED_PYPROJECT: ${{ github.workspace }}/source/pyproject.toml
+          CHECKOUT_ROOT: ${{ github.workspace }}/source
+        working-directory: /tmp
+        run: |
+          python -c "import importlib.metadata as m, os, pathlib, tomllib, perceivo_client; expected=tomllib.loads(pathlib.Path(os.environ['EXPECTED_PYPROJECT']).read_text())['project']['version']; origin=pathlib.Path(perceivo_client.__file__).resolve(); assert m.version('perceivo-client') == expected == perceivo_client.__version__; assert not origin.is_relative_to(pathlib.Path(os.environ['CHECKOUT_ROOT']).resolve())"
+      - name: Verify installed client imports
+        working-directory: /tmp
+        run: |
+          python -c "import perceivo_client; from perceivo_client import AsyncClient, Client; assert Client and AsyncClient"

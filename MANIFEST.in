@@ -1,0 +1,45 @@
+# Keep the shipped tests' repo-native inputs together so an unpacked source
+# distribution can run its complete test suite.
+recursive-include tests *.py *.json
+# These tests read `.github/` — repository release and CI infrastructure, which
+# an sdist must not carry. Shipping the test without its inputs makes the
+# unpacked sdist fail collection. They are excluded here.
+exclude tests/test_ci_dependency_floor_pins.py
+exclude tests/test_check_workflow_policy.py
+exclude tests/test_regenerate_workflow.py
+exclude tests/test_release_workflow_structure.py
+# The live public-API suite needs a deployed API and operator keys, so an
+# unpacked sdist cannot run it.
+prune tests/integration/public_api
+recursive-include scripts *.py
+# The grant-terminology scanners, their closed allowlist and the tests that
+# drive them scan this git checkout, so an unpacked sdist has nothing for them
+# to read. Repository tooling, like the .github/-reading tests above: excluded
+# here and named in tests/test_signing_sdist_packaging.py.
+exclude scripts/grant_terminology_scan.py
+exclude scripts/legacy_code_scan.py
+# The file-size ratchet and its self-test diff the git history
+# (merge-base, ls-tree), so an unpacked sdist has nothing for them to read.
+# Repository tooling: excluded here and named in
+# tests/test_signing_sdist_packaging.py, like the scanners above.
+exclude scripts/check_file_size.py
+prune scripts/tests
+exclude tests/_gitrepo.py
+exclude tests/test_grant_terminology_scan.py
+exclude tests/test_legacy_code_scan.py
+exclude tests/test_legacy_repo_scan.py
+include docs/HMAC_REQUEST_SIGNING.md
+include openapi/openapi-v1.json
+include openapi/spec_provenance.json
+include .gitattributes
+recursive-include vectors *.py
+
+# README.md tells the reader to run `python openapi/regen.py`. Ship it so the
+# instruction works inside an unpacked source distribution; it imports only the
+# standard library and its siblings openapi/regen_parts.py,
+# openapi/regen_names.py and openapi/regen_spec.py, and reads
+# openapi/openapi-v1.json, included above.
+include openapi/regen.py
+include openapi/regen_parts.py
+include openapi/regen_names.py
+include openapi/regen_spec.py
