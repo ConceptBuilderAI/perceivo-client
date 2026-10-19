@@ -44,7 +44,7 @@ dev = [
 # Exact pins: these versions reproduce perceivo_client/generated/models/.
 codegen = [
     "datamodel-code-generator[http]==0.83.0",
-    "black==26.5.1",
+    "black==26.10.1",
     "isort==8.0.1",
 ]
 
