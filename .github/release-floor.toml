@@ -1,0 +1,3 @@
+# The release version must be above this floor.
+schema_version = 1
+highest_client_version = "0.25.4"

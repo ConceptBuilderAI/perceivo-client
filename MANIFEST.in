@@ -1,0 +1,15 @@
+recursive-include tests *.py *.json
+exclude tests/test_ci_dependency_floor_pins.py
+exclude tests/test_check_workflow_policy.py
+exclude tests/test_regenerate_workflow.py
+exclude tests/test_release_workflow_structure.py
+recursive-include scripts *.py
+include docs/HMAC_REQUEST_SIGNING.md
+include openapi/openapi-v1.json
+include openapi/spec_provenance.json
+include .gitattributes
+recursive-include vectors *.py
+include openapi/regen.py
+include openapi/regen_parts.py
+include openapi/regen_names.py
+include openapi/regen_spec.py
