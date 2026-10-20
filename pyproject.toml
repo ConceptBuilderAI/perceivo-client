@@ -41,7 +41,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "respx>=0.23.1",
-    "ruff==0.17.0",
+    "ruff==0.17.1",
     # tests/test_signing_packaging.py builds a real wheel and installs it into a
     # clean venv. A packaging test that runs against the source tree (or against
     # `pip install -e`) is exactly the defect it exists to catch, so the builder
