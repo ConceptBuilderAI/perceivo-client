@@ -49,7 +49,7 @@ dev = [
     "build>=1.0",
     # tests/test_check_workflow_policy.py parses the workflows with the same
     # parser scripts/check_workflow_policy.py uses in CI and release.yml.
-    "pyyaml>=6.0",
+    "pyyaml>=6.0.3",
 ]
 # Tools needed only to regenerate the client from the OpenAPI spec. Pinned
 # exactly (unlike everything above) so that "regenerate and diff" is a
