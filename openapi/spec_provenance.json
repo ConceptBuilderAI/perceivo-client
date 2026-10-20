@@ -1,0 +1,22 @@
+{
+  "_comment": "Provenance of openapi/openapi-v1.json and of the models generated from it. Written only by `python openapi/regen.py --refresh --upstream <document>`, and read by `python openapi/regen.py --check`. Every value is derived from content: the same upstream document writes the same file on every machine.",
+  "upstream": {
+    "_role": "The upstream public OpenAPI document the vendored spec was produced from, identified by the SHA-256 of its bytes and the info.version it declares. `--check --upstream <document>` re-reads a supplied copy and requires both this hash and the transform result to match.",
+    "sha256": "c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490",
+    "version": "1.0.0"
+  },
+  "vendored": {
+    "_role": "openapi/openapi-v1.json, the input to code generation. Its bytes are pinned to LF by .gitattributes, so this hash holds for every checkout and archive.",
+    "transform": "openapi/regen.py:_to_customer_gateway_spec; UTF-8 sorted JSON, two-space indent, LF with final newline",
+    "sha256": "c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490",
+    "paths": 317,
+    "operations": 434
+  },
+  "generator": {
+    "code_generator": "datamodel-code-generator==0.83.0",
+    "code_formatters": [
+      "black==26.5.1",
+      "isort==8.0.1"
+    ]
+  }
+}

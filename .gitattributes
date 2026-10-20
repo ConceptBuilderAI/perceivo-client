@@ -1,0 +1,14 @@
+openapi/openapi-v1.json text eol=lf
+# `openapi/regen.py --check` byte-compares these files with what the generator
+# writes, which is LF. Without this line a checkout under `core.autocrlf=true`
+# (the Git for Windows default) holds CRLF and the check exits 1 on an
+# unchanged tree. The blobs are already LF; this pins the working tree.
+perceivo_client/generated/** text eol=lf
+.github/workflows/*.yml text eol=lf
+# The grant-terminology scanners are pinned by hash to their LF blobs (tests/test_legacy_repo_scan.py).
+scripts/grant_terminology_scan.py text eol=lf
+scripts/legacy_code_scan.py text eol=lf
+# The Protocol 3 ratchet asserts its own text against CANONICAL_SHA256; pin LF so
+# a core.autocrlf=true checkout does not read as a locally modified copy.
+scripts/check_file_size.py text eol=lf export-ignore
+scripts/tests/test_check_file_size.py text eol=lf export-ignore
