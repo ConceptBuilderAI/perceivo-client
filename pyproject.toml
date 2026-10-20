@@ -62,7 +62,7 @@ dev = [
 # installed one differs. Moving any of the three is a regeneration, reviewed as
 # one, never a dependency refresh.
 codegen = [
-    "datamodel-code-generator[http]==0.83.0",
+    "datamodel-code-generator[http]==0.85.0",
     "black==26.5.1",
     "isort==8.0.1",
 ]
