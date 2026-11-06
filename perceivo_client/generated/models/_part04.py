@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -183,11 +183,21 @@ class ComponentCostsByComponentResponse(BaseModel):
 
 
 class ComponentCreateType(RootModel[str]):
-    root: str = Field(..., min_length=1, title="Type")
+    root: str = Field(
+        ...,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        min_length=1,
+        title="Type",
+    )
 
 
 class ComponentCreateTypeNone(RootModel[None]):
-    root: None = Field(..., min_length=1, title="Type")
+    root: None = Field(
+        ...,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        min_length=1,
+        title="Type",
+    )
 
 
 class ComponentCreateWithType(BaseModel):
@@ -202,7 +212,11 @@ class ComponentCreateWithType(BaseModel):
     artifact_type_output: str | None = Field(None, title="Artifact Type Output")
     asset_type: str | None = Field(None, title="Asset Type")
     category: str | None = Field(None, title="Category")
-    component_type: str | None = Field(None, title="Component Type")
+    component_type: str | None = Field(
+        None,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        title="Component Type",
+    )
     config: dict[str, Any] | None = Field(None, title="Config")
     created_by_user_id: str | None = Field(None, title="Created By User Id")
     description: str | None = Field(None, title="Description")
@@ -211,21 +225,37 @@ class ComponentCreateWithType(BaseModel):
     manifest_yaml: str | None = Field(None, title="Manifest Yaml")
     name: str = Field(..., title="Name")
     organization_id: str | None = Field(None, title="Organization Id")
-    ports: list[dict[str, Any]] | None = Field(None, title="Ports")
+    ports: list[dict[str, Any]] | None = Field(
+        None,
+        description="The component's ports. Each entry needs `direction` (`IN` or `OUT`) and `key` (a string). The field is optional in the schema, but the platform checks ports by component type and answers 400 when a type's required ports are missing: START needs one `external_in` and one `out` port, END one `in` and one `external_out`, and AGENT or TOOL one `in`; set these with `port_type`.",
+        title="Ports",
+    )
     script: str | None = Field(None, title="Script")
     short_description: str | None = Field(None, title="Short Description")
     tags: list[str] | None = Field(None, title="Tags")
     type: ComponentCreateType | ComponentCreateTypeNone | None = Field(
-        ..., title="Type"
+        ...,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        title="Type",
     )
 
 
 class ComponentCreateComponentType(RootModel[str]):
-    root: str = Field(..., min_length=1, title="Component Type")
+    root: str = Field(
+        ...,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        min_length=1,
+        title="Component Type",
+    )
 
 
 class ComponentCreateComponentTypeNone(RootModel[None]):
-    root: None = Field(..., min_length=1, title="Component Type")
+    root: None = Field(
+        ...,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        min_length=1,
+        title="Component Type",
+    )
 
 
 class ComponentCreateWithComponentType(BaseModel):
@@ -242,7 +272,11 @@ class ComponentCreateWithComponentType(BaseModel):
     category: str | None = Field(None, title="Category")
     component_type: (
         ComponentCreateComponentType | ComponentCreateComponentTypeNone | None
-    ) = Field(..., title="Component Type")
+    ) = Field(
+        ...,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        title="Component Type",
+    )
     config: dict[str, Any] | None = Field(None, title="Config")
     created_by_user_id: str | None = Field(None, title="Created By User Id")
     description: str | None = Field(None, title="Description")
@@ -251,11 +285,19 @@ class ComponentCreateWithComponentType(BaseModel):
     manifest_yaml: str | None = Field(None, title="Manifest Yaml")
     name: str = Field(..., title="Name")
     organization_id: str | None = Field(None, title="Organization Id")
-    ports: list[dict[str, Any]] | None = Field(None, title="Ports")
+    ports: list[dict[str, Any]] | None = Field(
+        None,
+        description="The component's ports. Each entry needs `direction` (`IN` or `OUT`) and `key` (a string). The field is optional in the schema, but the platform checks ports by component type and answers 400 when a type's required ports are missing: START needs one `external_in` and one `out` port, END one `in` and one `external_out`, and AGENT or TOOL one `in`; set these with `port_type`.",
+        title="Ports",
+    )
     script: str | None = Field(None, title="Script")
     short_description: str | None = Field(None, title="Short Description")
     tags: list[str] | None = Field(None, title="Tags")
-    type: str | None = Field(None, title="Type")
+    type: str | None = Field(
+        None,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        title="Type",
+    )
 
 
 class ComponentCreateCategory(StrEnum):
@@ -286,7 +328,11 @@ class ComponentCreateWithCategory(BaseModel):
     category: ComponentCreateCategory | ComponentCreateCategoryNone | None = Field(
         ..., title="Category"
     )
-    component_type: str | None = Field(None, title="Component Type")
+    component_type: str | None = Field(
+        None,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        title="Component Type",
+    )
     config: dict[str, Any] | None = Field(None, title="Config")
     created_by_user_id: str | None = Field(None, title="Created By User Id")
     description: str | None = Field(None, title="Description")
@@ -295,11 +341,19 @@ class ComponentCreateWithCategory(BaseModel):
     manifest_yaml: str | None = Field(None, title="Manifest Yaml")
     name: str = Field(..., title="Name")
     organization_id: str | None = Field(None, title="Organization Id")
-    ports: list[dict[str, Any]] | None = Field(None, title="Ports")
+    ports: list[dict[str, Any]] | None = Field(
+        None,
+        description="The component's ports. Each entry needs `direction` (`IN` or `OUT`) and `key` (a string). The field is optional in the schema, but the platform checks ports by component type and answers 400 when a type's required ports are missing: START needs one `external_in` and one `out` port, END one `in` and one `external_out`, and AGENT or TOOL one `in`; set these with `port_type`.",
+        title="Ports",
+    )
     script: str | None = Field(None, title="Script")
     short_description: str | None = Field(None, title="Short Description")
     tags: list[str] | None = Field(None, title="Tags")
-    type: str | None = Field(None, title="Type")
+    type: str | None = Field(
+        None,
+        description="The component type: one of `FSM`, `POLICY`, `AGENT`, `TOOL`, `START`, `END`, `REVIEW`, `SCORING` or `EVALUATOR`. A value outside this list is refused by the platform.",
+        title="Type",
+    )
 
 
 class ComponentCreate(
@@ -411,53 +465,3 @@ class ComponentImportResult(BaseModel):
         None, title="Unresolved Secrets"
     )
     validation_warnings: list[str] | None = Field(None, title="Validation Warnings")
-
-
-class ComponentPortRead(BaseModel):
-    """
-    Component port representation.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    contract: dict[str, Any] | None = Field(None, title="Contract")
-    direction: str = Field(..., title="Direction")
-    id: str = Field(..., title="Id")
-    key: str = Field(..., title="Key")
-    label: str | None = Field(None, title="Label")
-    port_type: str | None = Field(None, title="Port Type")
-
-
-class ComponentRead(BaseModel):
-    """
-    Component resource representation.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    asset_type: str = Field(..., title="Asset Type")
-    category: str | None = Field(None, title="Category")
-    created_at: str | None = Field(None, title="Created At")
-    created_by_user_id: str | None = Field(None, title="Created By User Id")
-    description: str | None = Field(None, title="Description")
-    id: str = Field(..., title="Id")
-    name: str = Field(..., title="Name")
-    organization_id: str = Field(..., title="Organization Id")
-    short_description: str | None = Field(None, title="Short Description")
-    tags: list[str] | None = Field(None, title="Tags")
-    updated_at: str | None = Field(None, title="Updated At")
-
-
-class ComponentRunArtifact(BaseModel):
-    """
-    An artifact supplied to a component run as its input.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    data: Any = Field(None, title="Data")
-    mime_type: str | None = Field(None, title="Mime Type")
-    type: str | None = Field(None, title="Type")

@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,171 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class RegisterFileItem(BaseModel):
+    """
+    One uploaded file to register as an entry.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    blob_name: str = Field(
+        ...,
+        description="Blob path returned by the upload URL",
+        max_length=1024,
+        title="Blob Name",
+    )
+    checksum_md5: str | None = Field(
+        None, description="MD5 of the uploaded blob", title="Checksum Md5"
+    )
+    file_name: str = Field(
+        ..., description="Display name for the entry", max_length=255, title="File Name"
+    )
+    file_path: str = Field(
+        ...,
+        description="Virtual path within the space",
+        max_length=1024,
+        title="File Path",
+    )
+    mime_type: str | None = Field(
+        "application/octet-stream", description="Content type", title="Mime Type"
+    )
+    parent_id: UUID | None = Field(
+        None, description="Parent folder; null for the root", title="Parent Id"
+    )
+    size_bytes: int = Field(
+        ..., description="Size of the uploaded blob in bytes", ge=0, title="Size Bytes"
+    )
+    version_comment: str | None = Field(
+        None, description="Comment for this version", title="Version Comment"
+    )
+
+
+class RegisterFileOutcome(BaseModel):
+    """
+    What happened to one submitted file.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    detail: str | None = Field(
+        None, description="Why the file was not registered", title="Detail"
+    )
+    entry_id: UUID | None = Field(
+        None, description="The entry, when registered", title="Entry Id"
+    )
+    file_name: str = Field(
+        ..., description="The file's name, as submitted", title="File Name"
+    )
+    file_path: str = Field(
+        ..., description="The file's path, as submitted", title="File Path"
+    )
+    index: int = Field(
+        ..., description="The file's position in the request, from 0", title="Index"
+    )
+    status: str = Field(..., description="`registered` or `failed`", title="Status")
+    status_code: int | None = Field(
+        None,
+        description="The status a single registration would have answered",
+        title="Status Code",
+    )
+
+
+class ResidualGroupPrivileges(BaseModel):
+    """
+    Organization privileges a member still holds through one group.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    group_id: UUID = Field(..., title="Group Id")
+    group_name: str = Field(..., title="Group Name")
+    privileges: list[str] = Field(..., title="Privileges")
+
+
+class ResourceBreakdownResponse(BaseModel):
+    """
+    ``GET /v1/billing/resource-breakdown``.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    intelligences: dict[str, Any] | None = Field(None, title="Intelligences")
+    namespace: str | None = Field(None, title="Namespace")
+    orchestrations: dict[str, Any] | None = Field(None, title="Orchestrations")
+    organization_id: str | None = Field(None, title="Organization Id")
+    overhead_total: dict[str, Any] | None = Field(None, title="Overhead Total")
+    period_end: str | None = Field(None, title="Period End")
+    period_start: str | None = Field(None, title="Period Start")
+    ray: dict[str, Any] | None = Field(None, title="Ray")
+    redis: dict[str, Any] | None = Field(None, title="Redis")
+    total: dict[str, Any] | None = Field(None, title="Total")
+    variable_total: dict[str, Any] | None = Field(None, title="Variable Total")
+
+
+class ReviewAssign(BaseModel):
+    """
+    Who a review is handed to.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    assignee_group_id: str | None = Field(
+        None,
+        description="The group to hand the review to, when assigning to a group.",
+        title="Assignee Group Id",
+    )
+    assignee_user_sub: str | None = Field(
+        None,
+        description="The user to hand the review to, when assigning to a user.",
+        title="Assignee User Sub",
+    )
+    assignment_type: str = Field(
+        ...,
+        description="Whether the review is handed to a user, a group, or a pool.",
+        title="Assignment Type",
+    )
+
+
+class ReviewComplete(BaseModel):
+    """
+    Reviewer's answers for a pending review.
+
+    Completing the last blocking review on a workload resumes the parked run.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    response_data: dict[str, Any] = Field(
+        ...,
+        description="Reviewer answers keyed by the question ids declared in the review's survey_spec. Required.",
+        title="Response Data",
+    )
+
+
+class ReviewDraft(BaseModel):
+    """
+    Partial reviewer answers, saved without submitting the decision.
+
+    Saving a draft on a pending review moves it to in-progress. A later save
+    replaces the whole draft; it does not merge into it.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    draft_data: dict[str, Any] = Field(
+        ...,
+        description="Partial reviewer answers keyed by the question ids declared in the review's survey_spec. Required.",
+        title="Draft Data",
+    )
 
 
 class TimeoutMinutes(RootModel[int]):
@@ -93,20 +258,15 @@ class ReviewerAssignmentRequest(BaseModel):
         min_length=1,
         title="Node Id",
     )
-    required: bool | None = Field(
-        True, description="Whether the review blocks the run.", title="Required"
-    )
 
 
 class RoleCreateV1(BaseModel):
     """
     Body for ``POST /v1/roles``.
 
-    Note: ``privileges`` is validated downstream by ``validate_grantable_privileges``,
-    which rejects unknown strings, the bare ``MANAGE`` wildcard and
-    ``SYSTEM_ADMIN``. That validation is deliberately not duplicated here: a
-    second copy of a security allowlist is a second thing to forget to update,
-    and the copy that matters is the one next to the database.
+    Note: every entry in ``privileges`` must be a privilege that can be granted
+    to a role. An unknown string, the bare ``MANAGE`` wildcard and
+    ``SYSTEM_ADMIN`` are rejected, and the role is not created.
 
     Note: ``privileges`` is REQUIRED and must name at least one privilege. A role
     with no privileges is never accepted, whether the field is left out of the
@@ -305,168 +465,3 @@ class RunEvents(BaseModel):
         None, description="Status of the run described.", title="Status"
     )
     workload_id: str = Field(..., title="Workload Id")
-
-
-class RunOverheadResponse(BaseModel):
-    """
-    ``GET /v1/billing/run-overhead/{run_id}`` — component vs overhead split
-    for one run.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    is_final: bool | None = Field(None, title="Is Final")
-    overhead_cost_usd: float | None = Field(None, title="Overhead Cost Usd")
-    overhead_cu_hours: float | None = Field(None, title="Overhead Cu Hours")
-    overhead_duration_ms: int | None = Field(None, title="Overhead Duration Ms")
-    run_id: str | None = Field(None, title="Run Id")
-    total_component_cost_usd: float | None = Field(
-        None, title="Total Component Cost Usd"
-    )
-    total_component_duration_ms: int | None = Field(
-        None, title="Total Component Duration Ms"
-    )
-
-
-class RunResult(BaseModel):
-    """
-    The output of a run.
-
-    ``output_payload`` is null until the run reaches a terminal status. A run
-    that failed carries its terminal ``status`` and ``error_message``.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    artifact: dict[str, Any] | None = Field(None, title="Artifact")
-    completed_at: str | None = Field(None, title="Completed At")
-    error_message: str | None = Field(None, title="Error Message")
-    orchestration_id: str | None = Field(None, title="Orchestration Id")
-    output_payload: dict[str, Any] | None = Field(None, title="Output Payload")
-    run_id: str = Field(..., title="Run Id")
-    started_at: str | None = Field(None, title="Started At")
-    status: str | None = Field(None, title="Status")
-    workload_id: str | None = Field(None, title="Workload Id")
-
-
-class RunStatus(BaseModel):
-    """
-    The status of a run.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    completed_at: str | None = Field(None, title="Completed At")
-    error: str | None = Field(None, title="Error")
-    orchestration_id: str | None = Field(None, title="Orchestration Id")
-    run_id: str = Field(..., title="Run Id")
-    started_at: str | None = Field(None, title="Started At")
-    status: str | None = Field(None, title="Status")
-    workload_id: str | None = Field(None, title="Workload Id")
-
-
-class RunSteps(BaseModel):
-    """
-    Per-node execution detail for one run of a workload.
-
-    Each entry in ``steps`` describes one node's activity, including when it
-    first and last executed and one span per execution. A node that ran more
-    than once has more than one span.
-
-    Note: ``count`` is the number of steps **in this response**, which is the whole
-    set for the run — this collection is not windowed.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    count: int | None = Field(
-        None, description="Number of steps returned.", title="Count"
-    )
-    run_id: str | None = Field(None, title="Run Id")
-    run_number: int | None = Field(None, title="Run Number")
-    status: str | None = Field(
-        None, description="Status of the run described.", title="Status"
-    )
-    steps: list[dict[str, Any]] | None = Field(
-        None, description="One entry per node that executed.", title="Steps"
-    )
-    workload_id: str = Field(..., title="Workload Id")
-
-
-class RunSummary(BaseModel):
-    """
-    One run. ``run_id`` is accepted by every ``/v1/orchestrations/runs/{run_id}`` operation.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    completed_at: str | None = Field(None, title="Completed At")
-    error: str | None = Field(None, title="Error")
-    orchestration_id: str | None = Field(None, title="Orchestration Id")
-    queued_at: str | None = Field(None, title="Queued At")
-    run_id: str = Field(..., title="Run Id")
-    source: str | None = Field(None, title="Source")
-    started_at: str | None = Field(None, title="Started At")
-    status: str | None = Field(None, title="Status")
-    workload_id: str | None = Field(None, title="Workload Id")
-    workload_type: str | None = Field(None, title="Workload Type")
-
-
-class RuntimeObservations(BaseModel):
-    """
-    What static analysis of the script found. The script is never run.
-
-    Despite the name, nothing here observes an execution. The validator parses
-    the script into a syntax tree and inspects it; it does not import, evaluate
-    or run any part of it, in a sandbox or otherwise. Every field below is a
-    property of the source **text**, so each is a lower bound: anything a
-    program assembles at run time is invisible to all three.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    calls: list[str] | None = Field(
-        None,
-        description="Platform SDK calls that appear in the script's source, as dotted names such as `perceivo.log.info`. Sorted and de-duplicated: a call written once and a call written in a loop both appear once, a call inside an unreachable branch still appears, and no arguments, ordering or counts are reported. This is what the code *contains*, not what it did.",
-        title="Calls",
-    )
-    detected_hosts: list[str] | None = Field(
-        None,
-        description="Hostnames of `http://` and `https://` URLs written as literal strings in the script.\n\nNote: This is not a list of the hosts the component will contact, and an empty list is not evidence that it contacts none. The check is a pattern match over string literals, so a URL the script assembles at run time — by concatenation, formatting, an f-string, an environment variable or a configuration value — does not appear here. Use it to notice hard-coded endpoints, not to establish that a component has no egress.",
-        title="Detected Hosts",
-    )
-    logs: list[str] | None = Field(
-        None,
-        description="Notes from the validator recording which groups of checks it ran. These are the validator's own messages — the script is not run, so it emits nothing. Present only when `validation_profile` is `full`.",
-        title="Logs",
-    )
-
-
-class SearchIndexCreated(BaseModel):
-    """
-    The index was created.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    created: bool = Field(..., description="Always true on success.", title="Created")
-    index: str = Field(..., description="Name of the index created.", title="Index")
-
-
-class SearchIndexDeleted(BaseModel):
-    """
-    The index and everything in it were deleted.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    deleted: bool = Field(..., description="Always true on success.", title="Deleted")
-    index: str = Field(..., description="Name of the index deleted.", title="Index")

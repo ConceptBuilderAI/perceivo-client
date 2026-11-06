@@ -1,5 +1,5 @@
 """Requests and response shapes of the reviews, roles, runs, secrets,
-service-accounts, support, threads, triggers and webhooks namespaces, held to
+service-accounts, support, triggers and webhooks namespaces, held to
 the bodies the API actually sends.
 """
 
@@ -334,11 +334,6 @@ def test_secret_rotate_sends_the_new_value():
     client, rec = make_client(json_handler({"id": "se-1", "name": "n"}))
     client.secrets.rotate("se-1", {"value": "new"})
     assert json.loads(rec.last.content) == {"value": "new"}
-
-
-def test_thread_acknowledge_returns_none_whatever_the_api_answers():
-    client, _ = make_client(json_handler({"unexpected": True}))
-    assert client.threads.acknowledge("th-1") is None
 
 
 # --- webhooks: the record's undeclared fields are readable ---------------------

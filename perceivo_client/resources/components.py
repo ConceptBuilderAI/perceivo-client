@@ -2,8 +2,8 @@
 
 Create, read, change and delete components; validate a definition before
 saving it; export a component as a self-contained document and import it into
-another organization; read and replace its script; find what uses it; run it on
-its own; and work with its version lineage.
+another organization; read and replace its script; find what uses it; and work with its version
+lineage.
 """
 
 from __future__ import annotations
@@ -17,7 +17,6 @@ from perceivo_client.generated.models import (
     ComponentExportDocument,
     ComponentImportResult,
     ComponentRead,
-    ComponentRunResult,
     ComponentUpdateResult,
     ComponentUsageReport,
     ComponentValidationReport,
@@ -29,7 +28,7 @@ _BASE = "/v1/components"
 
 
 class ComponentsResource(BaseResource):
-    """Author, validate, move and run components."""
+    """Author, validate and move components."""
 
     def list(self, *, page: int | None = None, page_size: int | None = None) -> list[ComponentRead]:
         """One page of the organization's components (``GET /components``).
@@ -108,21 +107,20 @@ class ComponentsResource(BaseResource):
         )
 
     def update(self, component_id: str, body: dict[str, Any]) -> ComponentUpdateResult:
-        """Change a component by creating a new version (``PATCH /components/{component_id}``).
+        """Change a component (``PATCH /components/{component_id}``).
 
-        Components are immutable: a change to an orchestration component
-        creates a new version with a new ``id`` and ``version_created`` true,
-        and ``component_id`` keeps naming the previous version, unchanged. Use
-        the returned ``id`` from then on. Only the latest version can be
-        changed. Omitted fields are carried forward.
+        An update may create a new version with a new ``id``. The returned
+        ``id`` is the component to use from then on, and ``version_created``
+        says whether it differs from ``component_id``. Only the latest version
+        can be changed. Omitted fields are carried forward.
 
         Args:
             component_id: The latest version of the component.
             body: A ``ComponentUpdate`` object, sent as the JSON body.
 
         Returns:
-            :class:`ComponentUpdateResult`: the resulting version, with
-            ``version_created``.
+            :class:`ComponentUpdateResult`: the component to use from then on,
+            with ``version_created``.
 
         Raises:
             ValueError: If ``component_id`` is empty, ``.`` or ``..`` (refused
@@ -333,35 +331,6 @@ class ComponentsResource(BaseResource):
         return self._model(
             ComponentUsageReport,
             self._get(f"{_BASE}/{segment(component_id, 'component_id')}/dependents"),
-        )
-
-    def run(self, component_id: str, body: dict[str, Any]) -> ComponentRunResult:
-        """Execute one component in isolation (``POST /components/{component_id}/run``).
-
-        ``body`` is a ``ComponentRunRequest`` (``request_data`` and an optional
-        ``artifact``). The run is synchronous and creates no run record: keep
-        the result. A script that raises is ``success: false`` with the reason
-        in ``errors`` and still a ``200``.
-
-        Args:
-            component_id: The component to execute.
-            body: A ``ComponentRunRequest`` object, sent as the JSON body.
-
-        Returns:
-            :class:`ComponentRunResult`: read ``success`` and ``errors``; a
-            returned result does not mean the script succeeded.
-
-        Raises:
-            ValueError: If ``component_id`` is empty, ``.`` or ``..`` (refused
-                before the request is sent).
-            PerceivoAPIError: On an error response. The route declares ``404``
-                (``PerceivoNotFoundError``) for a component of another organization or one that does
-                not exist, and ``422`` (``PerceivoValidationError``) for a malformed request.
-            PerceivoConnectionError: If the API cannot be reached.
-        """
-        return self._model(
-            ComponentRunResult,
-            self._post(f"{_BASE}/{segment(component_id, 'component_id')}/run", json=body),
         )
 
     # -- lineage and versions ------------------------------------------------

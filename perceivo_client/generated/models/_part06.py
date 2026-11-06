@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -35,6 +35,10 @@ class CreateGraphConfigRequestDescription(RootModel[str]):
     root: str = Field(..., max_length=1000, title="Description")
 
 
+class RetainLastN(RootModel[int]):
+    root: int = Field(10, ge=0, le=2147483647, title="Retain Last N")
+
+
 class CreateGraphConfigRequest(BaseModel):
     """
     Create a graph configuration.
@@ -65,10 +69,14 @@ class CreateGraphConfigRequest(BaseModel):
     log_types: list[str] | None = Field(None, title="Log Types")
     name: str = Field(..., max_length=255, title="Name")
     orchestration_ids: list[str] | None = Field(None, title="Orchestration Ids")
-    retain_last_n: int | None = Field(10, title="Retain Last N")
+    retain_last_n: RetainLastN | None = Field(
+        10, title="Retain Last N", validate_default=True
+    )
     rolling_window_hours: int | None = Field(
         168,
         description="Hours of history for scheduled builds",
+        ge=1,
+        le=17000000,
         title="Rolling Window Hours",
     )
     schedule_end: AwareDatetime | None = Field(None, title="Schedule End")
@@ -220,8 +228,8 @@ class EdgeRefusal(BaseModel):
 
 class EgressUsageResponse(BaseModel):
     """
-    ``GET /v1/billing/egress-usage``. The old ``UsageResponse`` stub required a
-    top-level ``organization_id`` this payload does not carry.
+    ``GET /v1/billing/egress-usage``. The payload carries no top-level
+    ``organization_id``.
     """
 
     model_config = ConfigDict(
@@ -343,30 +351,81 @@ class ErrorResponse(BaseModel):
     )
 
 
+class ModelIds(RootModel[list[str]]):
+    root: list[str] = Field(
+        ...,
+        description="The models an offline evaluation covers. Omit to use the default selection.",
+        min_length=1,
+        title="Model Ids",
+    )
+
+
+class TriggerType(StrEnum):
+    """
+    What to evaluate: `offline_evaluation` (candidate models against held-out data), `online_evaluation` (the champion against the canary on live traffic) or `drift_evaluation` (feature drift against the baseline).
+    """
+
+    offline_evaluation = "offline_evaluation"
+    online_evaluation = "online_evaluation"
+    drift_evaluation = "drift_evaluation"
+
+
+class WindowHours(RootModel[int]):
+    root: int = Field(
+        ...,
+        description="The window, in hours, an online evaluation reads. Defaults to 24.",
+        ge=1,
+        title="Window Hours",
+    )
+
+
 class EvaluateRequest(BaseModel):
     """
-    Trigger an evaluation.
+    The evaluation to run.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    auto_accept: bool | None = Field(
+        None,
+        description="Overrides the auto-accept setting for this run: `true` accepts a valid recommendation automatically, `false` always leaves it pending.",
+        title="Auto Accept",
+    )
+    model_ids: ModelIds | None = Field(
+        None,
+        description="The models an offline evaluation covers. Omit to use the default selection.",
+        title="Model Ids",
+    )
+    trigger_type: TriggerType = Field(
+        ...,
+        description="What to evaluate: `offline_evaluation` (candidate models against held-out data), `online_evaluation` (the champion against the canary on live traffic) or `drift_evaluation` (feature drift against the baseline).",
+        title="Trigger Type",
+    )
+    window_hours: WindowHours | None = Field(
+        None,
+        description="The window, in hours, an online evaluation reads. Defaults to 24.",
+        title="Window Hours",
+    )
+
+
+class EvaluationQueued(BaseModel):
+    """
+    An evaluation that has been queued to run.
     """
 
     model_config = ConfigDict(
         extra="allow",
     )
-    config: dict[str, Any] | None = Field(None, title="Config")
-
-
-class EvaluationRead(BaseModel):
-    """
-    Intelligence evaluation result.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    created_at: str | None = Field(None, title="Created At")
-    id: str = Field(..., title="Id")
     intelligence_id: str = Field(..., title="Intelligence Id")
-    scores: dict[str, Any] | None = Field(None, title="Scores")
-    status: str = Field(..., title="Status")
+    message: str = Field(..., title="Message")
+    operation_id: str | None = Field(
+        None, description="Identifies the queued evaluation run.", title="Operation Id"
+    )
+    position: int | None = Field(
+        None, description="The run's place in the queue.", title="Position"
+    )
+    success: bool = Field(..., title="Success")
 
 
 class EvaluationRunRead(BaseModel):
@@ -416,53 +475,3 @@ class EventPage(BaseModel):
     has_more: bool | None = Field(None, title="Has More")
     limit: int | None = Field(None, title="Limit")
     organization_id: str | None = Field(None, title="Organization Id")
-
-
-class ExecuteCapabilityRequest(BaseModel):
-    """
-    Run a capability. A prompt or input goes inside ``config``.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    artifact: dict[str, Any] | None = Field(
-        None, description="Artifact to send with the run.", title="Artifact"
-    )
-    config: dict[str, Any] | None = Field(
-        None, description="Request data for the run.", title="Config"
-    )
-
-
-class ExecuteResponseRead(BaseModel):
-    """
-    Response from executing an orchestration action.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    action: str | None = Field(None, title="Action")
-    message: str | None = Field(None, title="Message")
-    result: dict[str, Any] | None = Field(None, title="Result")
-    success: bool | None = Field(None, title="Success")
-    target_id: str | None = Field(None, title="Target Id")
-
-
-class ExecutionGraphBuildResponse(BaseModel):
-    """
-    Summary of a freshly-built execution graph.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    blob_path: str | None = Field(None, title="Blob Path")
-    capability_id: str | None = Field(None, title="Capability Id")
-    created_at: str | None = Field(None, title="Created At")
-    entry_count: int | None = Field(None, title="Entry Count")
-    graph_id: str | None = Field(None, title="Graph Id")
-    graph_type: str | None = Field(None, title="Graph Type")
-    orchestration_summary: dict[str, Any] | None = Field(
-        None, title="Orchestration Summary"
-    )

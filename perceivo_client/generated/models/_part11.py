@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,76 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class McpConfigReplace(BaseModel):
+    """
+    A complete replacement MCP server configuration.
+
+    Both fields are required: this operation replaces the configuration rather
+    than merging into it, so the document you send is the document that results.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    auto_shutdown: bool = Field(
+        ...,
+        description="Whether the server shuts down after a period of inactivity.",
+        title="Auto Shutdown",
+    )
+    idle_timeout_minutes: int = Field(
+        ...,
+        description="Minutes of inactivity before an idle shutdown.",
+        ge=5,
+        le=1440,
+        title="Idle Timeout Minutes",
+    )
+
+
+class McpToolInvokeRequest(BaseModel):
+    """
+    Arguments for an MCP tool invocation.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    arguments: dict[str, Any] | None = Field(
+        None,
+        description="The tool's arguments, as the tool's own schema declares them.",
+        title="Arguments",
+    )
+
+
+class McpToolInvokeResult(BaseModel):
+    """
+    The result of an MCP tool invocation.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+
+
+class McpToolList(BaseModel):
+    """
+    The tools the MCP server currently exposes.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+
+
+class Message(RootModel[str]):
+    root: str = Field(
+        ...,
+        description="A note included in the invitation e-mail.",
+        max_length=1000,
+        min_length=1,
+        title="Message",
+    )
 
 
 class MemberInviteRole(StrEnum):
@@ -229,7 +299,7 @@ class ModelLifecycleResult(BaseModel):
     """
     Result of a model-lifecycle transition (retire/restore).
 
-    The gateway wraps the underlying model in a status envelope:
+    The response wraps the model in a status envelope:
     ``{success, model_id, from_status, to_status, model}``.
     """
 
@@ -400,76 +470,3 @@ class NodepoolCost(BaseModel):
     snapshot_count: int | None = Field(None, title="Snapshot Count")
     total_cost_usd: float | None = Field(None, title="Total Cost Usd")
     total_uptime_hours: float | None = Field(None, title="Total Uptime Hours")
-
-
-class NodepoolDetail(BaseModel):
-    """
-    One private compute nodepool belonging to this organization.
-
-    Nodepools are addressed by `name` on this surface. Provisioning and
-    teardown are asynchronous: `status` reports where the nodepool actually is,
-    which is not necessarily what the last request asked for.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    auto_shutdown: bool | None = Field(None, title="Auto Shutdown")
-    created_at: str | None = Field(None, title="Created At")
-    error_message: str | None = Field(None, title="Error Message")
-    gpu_type: str | None = Field(None, title="Gpu Type")
-    hourly_rate_usd: float | None = Field(None, title="Hourly Rate Usd")
-    idle_timeout_minutes: int | None = Field(None, title="Idle Timeout Minutes")
-    last_activity_at: str | None = Field(None, title="Last Activity At")
-    max_nodes: int | None = Field(None, title="Max Nodes")
-    min_nodes: int | None = Field(None, title="Min Nodes")
-    name: str = Field(..., title="Name")
-    node_count: int | None = Field(None, title="Node Count")
-    organization_id: str | None = Field(None, title="Organization Id")
-    provisioned_at: str | None = Field(None, title="Provisioned At")
-    sku: str | None = Field(None, title="Sku")
-    status: str | None = Field(None, title="Status")
-    updated_at: str | None = Field(None, title="Updated At")
-    warning_message: str | None = Field(None, title="Warning Message")
-
-
-class NodepoolListResponse(BaseModel):
-    """
-    Every private nodepool this organization holds.
-    """
-
-    items: list[NodepoolDetail] = Field(..., title="Items")
-    total: int = Field(..., title="Total")
-
-
-class IdleTimeoutMinutes(RootModel[int]):
-    root: int = Field(..., gt=0, title="Idle Timeout Minutes")
-
-
-class MaxNodes(RootModel[int]):
-    root: int = Field(..., gt=0, title="Max Nodes")
-
-
-class MinNodes(RootModel[int]):
-    root: int = Field(..., ge=0, title="Min Nodes")
-
-
-class NodepoolProvision(BaseModel):
-    """
-    A new private compute nodepool.
-
-    Provisioning is asynchronous and takes minutes; the response acknowledges
-    the request and reports the nodepool as `pending`.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    auto_shutdown: bool | None = Field(None, title="Auto Shutdown")
-    idle_timeout_minutes: IdleTimeoutMinutes | None = Field(
-        None, title="Idle Timeout Minutes"
-    )
-    max_nodes: MaxNodes | None = Field(None, title="Max Nodes")
-    min_nodes: MinNodes | None = Field(None, title="Min Nodes")
-    name: str = Field(..., max_length=100, min_length=1, title="Name")
-    sku: str = Field(..., min_length=1, title="Sku")

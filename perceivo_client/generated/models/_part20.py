@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,83 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class ActivityResponse(BaseModel):
+    """
+    The inputs queued for, running on, and recently finished by one capability.
+    """
+
+    counts: ActivityCounts | None = Field(None, description="Totals by state.")
+    queued: list[QueueItem] = Field(
+        ..., description="Inputs still waiting.", title="Queued"
+    )
+    recent: list[QueueItem] = Field(
+        ..., description="Inputs that recently finished.", title="Recent"
+    )
+    running: list[QueueItem] = Field(
+        ..., description="Inputs running now.", title="Running"
+    )
+
+
+class AlertListResponse(BaseModel):
+    """
+    A page of alerts.
+    """
+
+    has_more: bool = Field(..., title="Has More")
+    items: list[AlertRead] = Field(..., title="Items")
+    total: int = Field(..., title="Total")
+
+
+class AlertRuleCatalog(BaseModel):
+    """
+    What an alert rule can be built out of.
+
+    Every list here is a vocabulary the rule operations accept. Read it before
+    creating a rule rather than guessing a value: an unrecognised one is
+    refused.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    condition_types: list[AlertRuleConditionType] | None = Field(
+        None,
+        description="The kinds of condition a rule can carry.",
+        title="Condition Types",
+    )
+    event_pattern_syntax: list[str] | None = Field(
+        None,
+        description="The pattern forms an `event_pattern` condition accepts.",
+        title="Event Pattern Syntax",
+    )
+    event_types: list[str] | None = Field(
+        None,
+        description="Event types an `event_pattern` rule can match on.",
+        title="Event Types",
+    )
+    notify_channels: list[str] | None = Field(
+        None,
+        description="Channel kinds a rule can deliver to.",
+        title="Notify Channels",
+    )
+    severities: list[str] | None = Field(None, title="Severities")
+    target_types: list[str] | None = Field(None, title="Target Types")
+
+
+class ApplyTrafficPlanRequest(BaseModel):
+    """
+    Apply a traffic plan to a capability.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    change_reason: str | None = Field(None, title="Change Reason")
+    source: TrafficPlanSource | None = "user_manual"
+    source_id: str | None = Field(None, title="Source Id")
+    traffic_plan: TrafficPlanSpec
 
 
 class AssetSearchResponse(BaseModel):
@@ -318,7 +395,11 @@ class ExecuteOrchestrationRequest(BaseModel):
     )
     artifact: Any | None = Field(None, title="Artifact")
     artifacts: Any | None = Field(None, title="Artifacts")
-    callback_url: str | None = Field(None, title="Callback Url")
+    callback_url: str | None = Field(
+        None,
+        description="Absolute `https` URL on port 443 (the port may be omitted), without user credentials, that receives the run's status callbacks. Any other value is refused with `422`.",
+        title="Callback Url",
+    )
     conversation_enabled: bool | None = Field(None, title="Conversation Enabled")
     input: dict[str, Any] | None = Field(None, title="Input")
     input_data: dict[str, Any] | None = Field(None, title="Input Data")
@@ -394,60 +475,3 @@ class IntelligenceMaterializeAccepted(BaseModel):
     status: str | None = Field(
         None, description="`accepted` when the request was taken", title="Status"
     )
-
-
-class IntelligenceStatusRead(BaseModel):
-    """
-    Intelligence asset status: the asset, its runtime, its services and its models.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    intelligence: IntelligenceRead
-    models: list[ModelRead] | None = Field(None, title="Models")
-    runtime: dict[str, Any] | None = Field(
-        None,
-        description="The runtime record, or null when the asset has never been started.",
-        title="Runtime",
-    )
-    services: list[IntelligenceServiceStatusRead] | None = Field(None, title="Services")
-
-
-class IntelligenceTrafficPlanFamily(BaseModel):
-    """
-    One model family's share of the intelligence's traffic, and its models.
-    """
-
-    family_id: UUID = Field(..., title="Family Id")
-    family_name: str | None = Field(None, title="Family Name")
-    models: list[IntelligenceTrafficPlanModel] = Field(..., title="Models")
-    traffic_percent: int | None = Field(
-        100, description="The family's share of all traffic", title="Traffic Percent"
-    )
-
-
-class IntelligenceTrafficPlanSpec(BaseModel):
-    """
-    A complete traffic plan: every family that serves, and its models.
-    """
-
-    families: list[IntelligenceTrafficPlanFamily] = Field(..., title="Families")
-
-
-class IntelligenceTrainingJobRead(BaseModel):
-    """
-    A training job of this intelligence and the runs it has produced.
-    """
-
-    completed_at: AwareDatetime | None = Field(None, title="Completed At")
-    created_at: AwareDatetime = Field(..., title="Created At")
-    error_message: str | None = Field(None, title="Error Message")
-    family_id: UUID = Field(..., title="Family Id")
-    hyperparameter_grid: dict[str, list[Any]] = Field(..., title="Hyperparameter Grid")
-    id: UUID = Field(..., title="Id")
-    intelligence_id: UUID = Field(..., title="Intelligence Id")
-    runs: list[IntelligenceTrainingRunRead] = Field(..., title="Runs")
-    started_at: AwareDatetime | None = Field(None, title="Started At")
-    status: str = Field(..., title="Status")
-    training_config: dict[str, Any] = Field(..., title="Training Config")

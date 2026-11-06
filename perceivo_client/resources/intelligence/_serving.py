@@ -46,6 +46,9 @@ class _ServingMixin(_MixinBase):
                 (refused before the request is sent).
             PerceivoGrantError: For a key without ``INTELLIGENCE_PREDICT`` on
                 the intelligence (``403``).
+            PerceivoValidationError: For a body that is not an object, or that
+                has no ``features`` and carries fields other than ``metadata``
+                (``422``); nothing is scored.
             PerceivoNotFoundError: For a running intelligence with no inference
                 endpoint (``404``).
             PerceivoServerError: When the inference service is unreachable
@@ -76,7 +79,7 @@ class _ServingMixin(_MixinBase):
             body: A batch envelope: ``inputs`` (1 to 500 items, each with
                 ``features`` and an optional ``correlation_id``), and optionally
                 ``max_concurrency`` (1 to 100, default 10) and ``timeout_s``
-                (default 60, at most 300).
+                (default 60, at most 100).
 
         Returns:
             :class:`BatchPredictionResponse` — ``batch_id``,
@@ -261,7 +264,8 @@ class _ServingMixin(_MixinBase):
         The page is the ``data``, ``page``, ``page_size``, ``total``, ``next``
         envelope, so ``paginate_pages`` does not walk it: pass ``page=n`` until
         ``next`` is ``None``. ``next`` is a path without scheme or host. An
-        intelligence your organization does not own answers an empty page.
+        intelligence that does not exist, or that your organization does not
+        own, answers ``404``; the two are indistinguishable.
 
         Args:
             intelligence_id: The intelligence whose requests are listed.
@@ -276,6 +280,8 @@ class _ServingMixin(_MixinBase):
         Raises:
             ValueError: If ``intelligence_id`` is empty, ``.`` or ``..``
                 (refused before the request is sent).
+            PerceivoNotFoundError: For an intelligence that does not exist or
+                that your organization does not own (``404``).
             PerceivoValidationError: For a malformed query, including a
                 ``page_size`` above 200 (``422``).
             PerceivoAPIError: On any other error response.

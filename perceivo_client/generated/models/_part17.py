@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,178 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class ServiceSecretRead(BaseModel):
+    """
+    A secret attached to an intelligence service. Carries no secret value.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    alias: str | None = Field(None, title="Alias")
+    id: str | None = Field(None, title="Id")
+    intelligence_id: str | None = Field(None, title="Intelligence Id")
+    secret_id: str | None = Field(None, title="Secret Id")
+    secret_name: str | None = Field(None, title="Secret Name")
+    service_type: str | None = Field(None, title="Service Type")
+
+
+class StartIntelligenceRequest(BaseModel):
+    """
+    Start an intelligence runtime.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    force_restart: bool | None = Field(False, title="Force Restart")
+
+
+class StopIntelligenceRequest(BaseModel):
+    """
+    Stop an intelligence runtime.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    graceful: bool | None = Field(True, title="Graceful")
+    timeout_seconds: int | None = Field(30, title="Timeout Seconds")
+
+
+class StorageSpaceCreate(BaseModel):
+    """
+    Create a storage space. ``organization_id`` is set from the API key.
+    """
+
+    description: str | None = Field(None, title="Description")
+    is_default: bool | None = Field(False, title="Is Default")
+    name: str = Field(..., max_length=255, title="Name")
+    quota_bytes: int | None = Field(None, title="Quota Bytes")
+
+
+class StorageSpaceRead(BaseModel):
+    """
+    A storage space belonging to an organization.
+    """
+
+    created_at: AwareDatetime = Field(..., title="Created At")
+    created_by_user_id: UUID = Field(..., title="Created By User Id")
+    description: str | None = Field(None, title="Description")
+    id: UUID = Field(..., title="Id")
+    is_default: bool = Field(..., title="Is Default")
+    is_personal: bool = Field(..., title="Is Personal")
+    name: str = Field(..., title="Name")
+    organization_id: UUID | None = Field(None, title="Organization Id")
+    owner_user_id: UUID | None = Field(None, title="Owner User Id")
+    quota_bytes: int | None = Field(None, title="Quota Bytes")
+    updated_at: AwareDatetime = Field(..., title="Updated At")
+    used_bytes: int = Field(..., title="Used Bytes")
+
+
+class StorageSpaceUpdateName(RootModel[str]):
+    root: str = Field(..., description="New space name", max_length=255, title="Name")
+
+
+class QuotaBytes(RootModel[int]):
+    root: int = Field(
+        ..., description="Storage quota in bytes", ge=0, title="Quota Bytes"
+    )
+
+
+class StorageSpaceUpdate(BaseModel):
+    """
+    Fields to change on a storage space. Omitted fields are left alone.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    description: str | None = Field(
+        None, description="New description", title="Description"
+    )
+    is_default: bool | None = Field(
+        None,
+        description="Make this the organization's default space",
+        title="Is Default",
+    )
+    name: StorageSpaceUpdateName | None = Field(
+        None, description="New space name", title="Name"
+    )
+    quota_bytes: QuotaBytes | None = Field(
+        None, description="Storage quota in bytes", title="Quota Bytes"
+    )
+
+
+class StorageUsageRead(BaseModel):
+    """
+    Usage summary for a single storage space.
+    """
+
+    file_count: int = Field(..., title="File Count")
+    folder_count: int = Field(..., title="Folder Count")
+    quota_bytes: int | None = Field(None, title="Quota Bytes")
+    storage_space_id: UUID = Field(..., title="Storage Space Id")
+    storage_space_name: str = Field(..., title="Storage Space Name")
+    trashed_bytes: int | None = Field(0, title="Trashed Bytes")
+    trashed_file_count: int | None = Field(0, title="Trashed File Count")
+    used_bytes: int = Field(..., title="Used Bytes")
+
+
+class SubscriptionRead(BaseModel):
+    """
+    ``GET /v1/billing/subscription`` — the org's billing configuration record.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    azure_subscription_id: str | None = Field(None, title="Azure Subscription Id")
+    azure_tenant_id: str | None = Field(None, title="Azure Tenant Id")
+    billing_currency: str | None = Field(None, title="Billing Currency")
+    billing_cycle: str | None = Field(None, title="Billing Cycle")
+    created_at: str | None = Field(None, title="Created At")
+    csp_partner_id: str | None = Field(None, title="Csp Partner Id")
+    csp_partner_name: str | None = Field(None, title="Csp Partner Name")
+    default_compute_markup_percent: float | None = Field(
+        None, title="Default Compute Markup Percent"
+    )
+    default_llm_markup_percent: float | None = Field(
+        None, title="Default Llm Markup Percent"
+    )
+    default_storage_markup_percent: float | None = Field(
+        None, title="Default Storage Markup Percent"
+    )
+    default_transfer_markup_percent: float | None = Field(
+        None, title="Default Transfer Markup Percent"
+    )
+    id: str | None = Field(None, title="Id")
+    invoice_email: str | None = Field(None, title="Invoice Email")
+    is_active: bool | None = Field(None, title="Is Active")
+    markup_overrides: list[Any] | None = Field(None, title="Markup Overrides")
+    organization_id: str | None = Field(None, title="Organization Id")
+    updated_at: str | None = Field(None, title="Updated At")
+
+
+class SubscriptionReadV1(BaseModel):
+    """
+    One subscription.
+
+    Note: The subscriptions operation returns a **list**, even though its path is
+    singular — an organization may hold more than one.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    created_at: str = Field(..., title="Created At")
+    id: str = Field(..., title="Id")
+    organization_id: str = Field(..., title="Organization Id")
+    status: str | None = Field(None, title="Status")
+    tier_id: str | None = Field(None, title="Tier Id")
+    updated_at: str = Field(..., title="Updated At")
 
 
 class SupportAttachmentCreate(BaseModel):
@@ -137,140 +309,6 @@ class TestInvokeResponse(BaseModel):
     success: bool | None = Field(None, title="Success")
 
 
-class ThreadCreateTitle(RootModel[str]):
-    root: str = Field(
-        ..., description="Optional thread title.", max_length=255, title="Title"
-    )
-
-
-class ThreadCreate(BaseModel):
-    """
-    Open a thread with a set of people in your organization.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    participant_user_ids: list[str] = Field(
-        ...,
-        description="The people to include. You are added automatically, so a single other person opens a direct thread.",
-        min_length=1,
-        title="Participant User Ids",
-    )
-    title: ThreadCreateTitle | None = Field(
-        None, description="Optional thread title.", title="Title"
-    )
-
-
-class ThreadMessage(BaseModel):
-    """
-    A single message in a thread.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    body: str = Field(..., title="Body")
-    conversation_id: str = Field(..., title="Conversation Id")
-    created_at: AwareDatetime = Field(..., title="Created At")
-    id: str = Field(..., title="Id")
-    metadata: dict[str, Any] | None = Field(None, title="Metadata")
-    sender_id: str | None = Field(None, title="Sender Id")
-    sender_name: str | None = Field(None, title="Sender Name")
-    sender_type: str = Field(..., title="Sender Type")
-
-
-class ThreadMessageCreate(BaseModel):
-    """
-    Post a message into a thread.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    body: str = Field(..., description="The message text.", min_length=1, title="Body")
-    metadata: dict[str, Any] | None = Field(
-        None,
-        description="Arbitrary JSON stored alongside the message.",
-        title="Metadata",
-    )
-
-
-class ThreadMessagesPage(BaseModel):
-    """
-    A window of messages, oldest first.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    has_more: bool | None = Field(False, title="Has More")
-    messages: list[ThreadMessage] | None = Field(None, title="Messages")
-
-
-class ThreadParticipant(BaseModel):
-    """
-    Someone on a thread.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    display_name: str | None = Field(None, title="Display Name")
-    last_read_at: AwareDatetime | None = Field(None, title="Last Read At")
-    role: str = Field(..., title="Role")
-    user_id: str = Field(..., title="User Id")
-
-
-class ThreadParticipantAdd(BaseModel):
-    """
-    Add someone to a group thread.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    user_id: str = Field(..., description="The person to add.", title="User Id")
-
-
-class ThreadRead(BaseModel):
-    """
-    A thread, with its participants and a preview of the latest message.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    conversation_type: str = Field(..., title="Conversation Type")
-    created_at: AwareDatetime = Field(..., title="Created At")
-    id: str = Field(..., title="Id")
-    last_message: ThreadMessage | None = None
-    organization_id: str = Field(..., title="Organization Id")
-    participants: list[ThreadParticipant] | None = Field(None, title="Participants")
-    title: str | None = Field(None, title="Title")
-    unread_count: int | None = Field(0, title="Unread Count")
-    updated_at: AwareDatetime = Field(..., title="Updated At")
-
-
-class ThreadUpdateTitle(RootModel[str]):
-    root: str = Field(
-        ..., description="New thread title.", max_length=255, title="Title"
-    )
-
-
-class ThreadUpdate(BaseModel):
-    """
-    Amend a thread you are on.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    title: ThreadUpdateTitle | None = Field(
-        None, description="New thread title.", title="Title"
-    )
-
-
 class CommentType(StrEnum):
     """
     `note` or `customer_message`.
@@ -325,6 +363,19 @@ class Category(StrEnum):
     documentation = "documentation"
 
 
+class TicketCreateSource(StrEnum):
+    """
+    Where the ticket came from. Defaults to `manual`.
+    """
+
+    user_request = "user_request"
+    proactive = "proactive"
+    error = "error"
+    manual = "manual"
+    chatbot = "chatbot"
+    system = "system"
+
+
 class TicketCreate(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -359,7 +410,7 @@ class TicketCreate(BaseModel):
         description="How urgent the ticket is: `critical`, `high`, `normal` or `low`. Defaults to `normal`.",
         title="Priority",
     )
-    source: str | None = Field(
+    source: TicketCreateSource | None = Field(
         None,
         description="Where the ticket came from. Defaults to `manual`.",
         title="Source",
@@ -419,61 +470,3 @@ class TicketSummaryOut(BaseModel):
     user_email: str | None = Field(None, title="User Email")
     user_id: str | None = Field(None, title="User Id")
     workload_id: str | None = Field(None, title="Workload Id")
-
-
-class TicketUpdate(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    category: Category | None = Field(
-        None,
-        description="The area of the platform the ticket concerns.",
-        title="Category",
-    )
-    components_affected: list[str] | None = Field(
-        None,
-        description="The names of the components the ticket concerns.",
-        title="Components Affected",
-    )
-    customer_email: str | None = Field(
-        None,
-        description="The email address of the person the ticket is for.",
-        title="Customer Email",
-    )
-    customer_name: str | None = Field(
-        None,
-        description="The name of the person the ticket is for.",
-        title="Customer Name",
-    )
-    description: str | None = Field(
-        None,
-        description="The full account of the problem or request.",
-        title="Description",
-    )
-    priority: str | None = Field(
-        None,
-        description="How urgent the ticket is: `critical`, `high`, `normal` or `low`.",
-        title="Priority",
-    )
-    tags: list[str] | None = Field(
-        None,
-        description="Free-form labels for finding and grouping tickets.",
-        title="Tags",
-    )
-    title: str | None = Field(
-        None,
-        description="A one-line summary of the problem or request, at most 256 characters.",
-        title="Title",
-    )
-
-
-class TrafficAllocationSpec(BaseModel):
-    """
-    One orchestration's share of a capability's traffic.
-    """
-
-    execution_mode: str | None = Field(None, title="Execution Mode")
-    orchestration_id: str = Field(..., title="Orchestration Id")
-    role: str = Field(..., title="Role")
-    traffic_percent: float = Field(..., title="Traffic Percent")
-    workload_config: dict[str, Any] | None = Field(None, title="Workload Config")

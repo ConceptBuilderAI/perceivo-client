@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,79 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class NodepoolDetail(BaseModel):
+    """
+    One private compute nodepool belonging to this organization.
+
+    Nodepools are addressed by `name` on this surface. Provisioning and
+    teardown are asynchronous: `status` reports where the nodepool actually is,
+    which is not necessarily what the last request asked for.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    auto_shutdown: bool | None = Field(None, title="Auto Shutdown")
+    created_at: str | None = Field(None, title="Created At")
+    error_message: str | None = Field(None, title="Error Message")
+    gpu_type: str | None = Field(None, title="Gpu Type")
+    hourly_rate_usd: float | None = Field(None, title="Hourly Rate Usd")
+    idle_timeout_minutes: int | None = Field(None, title="Idle Timeout Minutes")
+    last_activity_at: str | None = Field(None, title="Last Activity At")
+    max_nodes: int | None = Field(None, title="Max Nodes")
+    min_nodes: int | None = Field(None, title="Min Nodes")
+    name: str = Field(..., title="Name")
+    node_count: int | None = Field(None, title="Node Count")
+    organization_id: str | None = Field(None, title="Organization Id")
+    provisioned_at: str | None = Field(None, title="Provisioned At")
+    sku: str | None = Field(None, title="Sku")
+    status: str | None = Field(None, title="Status")
+    updated_at: str | None = Field(None, title="Updated At")
+    warning_message: str | None = Field(None, title="Warning Message")
+
+
+class NodepoolListResponse(BaseModel):
+    """
+    Every private nodepool this organization holds.
+    """
+
+    items: list[NodepoolDetail] = Field(..., title="Items")
+    total: int = Field(..., title="Total")
+
+
+class IdleTimeoutMinutes(RootModel[int]):
+    root: int = Field(..., gt=0, title="Idle Timeout Minutes")
+
+
+class MaxNodes(RootModel[int]):
+    root: int = Field(..., gt=0, title="Max Nodes")
+
+
+class MinNodes(RootModel[int]):
+    root: int = Field(..., ge=0, title="Min Nodes")
+
+
+class NodepoolProvision(BaseModel):
+    """
+    A new private compute nodepool.
+
+    Provisioning is asynchronous and takes minutes; the response acknowledges
+    the request and reports the nodepool as `pending`.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    auto_shutdown: bool | None = Field(None, title="Auto Shutdown")
+    idle_timeout_minutes: IdleTimeoutMinutes | None = Field(
+        None, title="Idle Timeout Minutes"
+    )
+    max_nodes: MaxNodes | None = Field(None, title="Max Nodes")
+    min_nodes: MinNodes | None = Field(None, title="Min Nodes")
+    name: str = Field(..., max_length=100, min_length=1, title="Name")
+    sku: str = Field(..., min_length=1, title="Sku")
 
 
 class NodepoolScale(BaseModel):
@@ -385,96 +458,3 @@ class OrchestrationEdge(BaseModel):
     orchestration_id: str = Field(..., title="Orchestration Id")
     source_orch_port_id: str = Field(..., title="Source Orch Port Id")
     target_orch_port_id: str = Field(..., title="Target Orch Port Id")
-
-
-class OrchestrationEdgeDefine(BaseModel):
-    """
-    An edge of an unsaved definition, joining two entries of `ports` by position.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    edge_kind: EdgeKind = Field(..., title="Edge Kind")
-    source_port_index: int = Field(
-        ...,
-        description="Zero-based index into the `ports` list.",
-        title="Source Port Index",
-    )
-    target_port_index: int = Field(
-        ...,
-        description="Zero-based index into the `ports` list.",
-        title="Target Port Index",
-    )
-
-
-class OrchestrationExportRead(BaseModel):
-    """
-    Exported orchestration bundle (metadata + components + graph).
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    components: dict[str, Any] | None = Field(None, title="Components")
-    edges: list[dict[str, Any]] | None = Field(None, title="Edges")
-    export_type: str | None = Field(None, title="Export Type")
-    export_version: str | None = Field(None, title="Export Version")
-    exported_at: str | None = Field(None, title="Exported At")
-    nodes: list[dict[str, Any]] | None = Field(None, title="Nodes")
-    orchestration: dict[str, Any] | None = Field(None, title="Orchestration")
-    ports: list[dict[str, Any]] | None = Field(None, title="Ports")
-    secrets_required: list[dict[str, Any]] | None = Field(
-        None, title="Secrets Required"
-    )
-
-
-class OrchestrationMetadataUpdate(BaseModel):
-    """
-    Update an orchestration's name, description or tags (all optional).
-
-    The graph and runtime settings are not edited here: save them in a draft's
-    `publish_payload.patch` and publish it with
-    `POST /v1/orchestrations/drafts/{draft_id}/publish`.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    description: str | None = Field(None, title="Description")
-    name: str | None = Field(None, title="Name")
-    tags: list[str] | None = Field(None, title="Tags")
-
-
-class OrchestrationNode(BaseModel):
-    """
-    One node of an orchestration graph.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    component_asset_id: str = Field(
-        ..., description="The component this node runs", title="Component Asset Id"
-    )
-    config: dict[str, Any] = Field(..., title="Config")
-    id: str = Field(..., title="Id")
-    name: str | None = Field(None, title="Name")
-    orchestration_id: str = Field(..., title="Orchestration Id")
-    position: dict[str, Any] | None = Field(
-        None, description="Editor coordinates, if any", title="Position"
-    )
-
-
-class OrchestrationNodeDefine(BaseModel):
-    """
-    A node of an unsaved definition.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    component_id: UUID = Field(..., title="Component Id")
-    config: dict[str, Any] | None = Field(None, title="Config")
-    name: str | None = Field(None, title="Name")
-    position: dict[str, Any] | None = Field(None, title="Position")

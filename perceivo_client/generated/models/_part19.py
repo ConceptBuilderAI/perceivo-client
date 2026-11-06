@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,88 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class UploadUrlRequest(BaseModel):
+    """
+    The storage space a direct upload is destined for, and the one file.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    file_name: str = Field(
+        ...,
+        description="Name of the one file to upload",
+        max_length=255,
+        min_length=1,
+        title="File Name",
+    )
+    relative_path: RelativePath | None = Field(
+        None,
+        description="Folder within the space, e.g. reports/2026",
+        title="Relative Path",
+    )
+    size_bytes: int = Field(
+        ...,
+        description="Size of the file in bytes, checked against the storage quota",
+        ge=0,
+        title="Size Bytes",
+    )
+    space_id: UUID = Field(
+        ..., description="Storage space the upload is destined for", title="Space Id"
+    )
+
+
+class UploadUrlsRequest(BaseModel):
+    """
+    The storage space the uploads are destined for, and up to 100 files.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    files: list[UploadUrlFile] = Field(
+        ...,
+        description="The files to upload, one to a hundred; their total size is checked against the space's storage quota once",
+        max_length=100,
+        min_length=1,
+        title="Files",
+    )
+    space_id: UUID = Field(
+        ..., description="Storage space the uploads are destined for", title="Space Id"
+    )
+
+
+class UploadUrlsResponse(BaseModel):
+    """
+    One upload URL per requested file, in request order.
+    """
+
+    targets: list[UploadTargetResponse] = Field(
+        ..., description="One target per file, in request order", title="Targets"
+    )
+
+
+class UsageBreakdownResponse(BaseModel):
+    """
+    ``GET /v1/billing/usage/breakdown`` — per-service usage breakdown.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    elasticsearch: dict[str, Any] | None = Field(None, title="Elasticsearch")
+    intelligence: dict[str, Any] | None = Field(None, title="Intelligence")
+    mcp: dict[str, Any] | None = Field(None, title="Mcp")
+    milvus: dict[str, Any] | None = Field(None, title="Milvus")
+    organization_id: str | None = Field(None, title="Organization Id")
+    period_end: str | None = Field(None, title="Period End")
+    period_start: str | None = Field(None, title="Period Start")
+    ray: dict[str, Any] | None = Field(None, title="Ray")
+    redis: dict[str, Any] | None = Field(None, title="Redis")
+    snapshot_count: int | None = Field(None, title="Snapshot Count")
+    total: dict[str, Any] | None = Field(None, title="Total")
 
 
 class UsageMetricsResponse(BaseModel):
@@ -390,80 +472,3 @@ class WhoamiResponse(BaseModel):
     type: str = Field(
         ..., description='Principal type: "service_account" or "user".', title="Type"
     )
-
-
-class ActivityResponse(BaseModel):
-    """
-    The inputs queued for, running on, and recently finished by one capability.
-    """
-
-    counts: ActivityCounts | None = Field(None, description="Totals by state.")
-    queued: list[QueueItem] = Field(
-        ..., description="Inputs still waiting.", title="Queued"
-    )
-    recent: list[QueueItem] = Field(
-        ..., description="Inputs that recently finished.", title="Recent"
-    )
-    running: list[QueueItem] = Field(
-        ..., description="Inputs running now.", title="Running"
-    )
-
-
-class AlertListResponse(BaseModel):
-    """
-    A page of alerts.
-    """
-
-    has_more: bool = Field(..., title="Has More")
-    items: list[AlertRead] = Field(..., title="Items")
-    total: int = Field(..., title="Total")
-
-
-class AlertRuleCatalog(BaseModel):
-    """
-    What an alert rule can be built out of.
-
-    Every list here is a vocabulary the rule operations accept. Read it before
-    creating a rule rather than guessing a value: an unrecognised one is
-    refused.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    condition_types: list[AlertRuleConditionType] | None = Field(
-        None,
-        description="The kinds of condition a rule can carry.",
-        title="Condition Types",
-    )
-    event_pattern_syntax: list[str] | None = Field(
-        None,
-        description="The pattern forms an `event_pattern` condition accepts.",
-        title="Event Pattern Syntax",
-    )
-    event_types: list[str] | None = Field(
-        None,
-        description="Event types an `event_pattern` rule can match on.",
-        title="Event Types",
-    )
-    notify_channels: list[str] | None = Field(
-        None,
-        description="Channel kinds a rule can deliver to.",
-        title="Notify Channels",
-    )
-    severities: list[str] | None = Field(None, title="Severities")
-    target_types: list[str] | None = Field(None, title="Target Types")
-
-
-class ApplyTrafficPlanRequest(BaseModel):
-    """
-    Apply a traffic plan to a capability.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    change_reason: str | None = Field(None, title="Change Reason")
-    source: TrafficPlanSource | None = "user_manual"
-    source_id: str | None = Field(None, title="Source Id")
-    traffic_plan: TrafficPlanSpec

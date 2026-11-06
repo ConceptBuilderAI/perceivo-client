@@ -92,12 +92,14 @@ _MODEL_NAME_MAP = {
     f"#/components/schemas/OrganizationUpdate/name{_ANY_OF_ARRAY}": "OrganizationUpdateName",
     f"#/components/schemas/RoleUpdateV1/name{_ANY_OF_ARRAY}": "RoleUpdateName",
     f"#/components/schemas/StorageSpaceUpdate/name{_ANY_OF_ARRAY}": "StorageSpaceUpdateName",
-    f"#/components/schemas/ThreadCreate/title{_ANY_OF_ARRAY}": "ThreadCreateTitle",
-    f"#/components/schemas/ThreadUpdate/title{_ANY_OF_ARRAY}": "ThreadUpdateTitle",
+    f"#/components/schemas/TicketCreate/source{_ANY_OF}/0{_ENUM}": "TicketCreateSource",
     f"#/components/schemas/TrainingConfigurationUpdate/name{_ANY_OF_ARRAY}": (
         "TrainingConfigurationUpdateName"
     ),
     f"#/components/schemas/TrainingGroupUpdate/name{_ANY_OF_ARRAY}": "TrainingGroupUpdateName",
+    f"#/components/schemas/UpdateGraphConfigRequest/retain_last_n{_ANY_OF_ARRAY}": (
+        "UpdateGraphConfigRequestRetainLastN"
+    ),
     # ``ComponentCreate`` is an ``anyOf`` of three branches, each requiring one of
     # ``type``, ``component_type`` or ``category``. The generator would name the
     # branches ``ComponentCreate1`` .. ``ComponentCreate3`` and their field types

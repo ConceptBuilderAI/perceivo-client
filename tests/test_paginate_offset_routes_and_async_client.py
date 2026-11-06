@@ -75,7 +75,7 @@ def test_the_served_offset_routes_are_exactly_these_six():
         ("GET", "/v1/grants"),
         ("GET", "/v1/logs"),
     ]
-    assert len(page_routes) == 29
+    assert len(page_routes) == 27
 
 
 def test_paginate_is_correct_for_the_one_offset_route_it_documents():

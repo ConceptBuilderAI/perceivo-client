@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,99 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class OrchestrationEdgeDefine(BaseModel):
+    """
+    An edge of an unsaved definition, joining two entries of `ports` by position.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    edge_kind: EdgeKind = Field(..., title="Edge Kind")
+    source_port_index: int = Field(
+        ...,
+        description="Zero-based index into the `ports` list.",
+        title="Source Port Index",
+    )
+    target_port_index: int = Field(
+        ...,
+        description="Zero-based index into the `ports` list.",
+        title="Target Port Index",
+    )
+
+
+class OrchestrationExportRead(BaseModel):
+    """
+    Exported orchestration bundle (metadata + components + graph).
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    components: dict[str, Any] | None = Field(None, title="Components")
+    edges: list[dict[str, Any]] | None = Field(None, title="Edges")
+    export_type: str | None = Field(None, title="Export Type")
+    export_version: str | None = Field(None, title="Export Version")
+    exported_at: str | None = Field(None, title="Exported At")
+    nodes: list[dict[str, Any]] | None = Field(None, title="Nodes")
+    orchestration: dict[str, Any] | None = Field(None, title="Orchestration")
+    ports: list[dict[str, Any]] | None = Field(None, title="Ports")
+    secrets_required: list[dict[str, Any]] | None = Field(
+        None, title="Secrets Required"
+    )
+
+
+class OrchestrationMetadataUpdate(BaseModel):
+    """
+    Update an orchestration's name, description or tags (all optional).
+
+    The graph and runtime settings are not edited here: save them in a draft's
+    `publish_payload.patch` and publish it with
+    `POST /v1/orchestrations/drafts/{draft_id}/publish`.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    description: str | None = Field(None, title="Description")
+    name: str | None = Field(None, title="Name")
+    tags: list[str] | None = Field(None, title="Tags")
+
+
+class OrchestrationNode(BaseModel):
+    """
+    One node of an orchestration graph.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    component_asset_id: str = Field(
+        ..., description="The component this node runs", title="Component Asset Id"
+    )
+    config: dict[str, Any] = Field(..., title="Config")
+    id: str = Field(..., title="Id")
+    name: str | None = Field(None, title="Name")
+    orchestration_id: str = Field(..., title="Orchestration Id")
+    position: dict[str, Any] | None = Field(
+        None, description="Editor coordinates, if any", title="Position"
+    )
+
+
+class OrchestrationNodeDefine(BaseModel):
+    """
+    A node of an unsaved definition.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    component_id: UUID = Field(..., title="Component Id")
+    config: dict[str, Any] | None = Field(None, title="Config")
+    name: str | None = Field(None, title="Name")
+    position: dict[str, Any] | None = Field(None, title="Position")
 
 
 class OrchestrationPortDefine(BaseModel):
@@ -267,7 +360,7 @@ class OrganizationLimitsRead(BaseModel):
     fields are the caps that are actually enforced.
 
     ``platform_token_monthly_quota`` is the included-token figure billing uses.
-    ``max_monthly_input_tokens`` / ``max_monthly_output_tokens`` are legacy:
+    ``max_monthly_input_tokens`` / ``max_monthly_output_tokens`` are deprecated:
     not enforced and not the billing basis.
     """
 
@@ -295,13 +388,13 @@ class OrganizationLimitsRead(BaseModel):
     max_monthly_input_tokens: int | None = Field(
         None,
         deprecated=True,
-        description="Legacy per-direction input-token figure; not enforced and not the billing basis. Use platform_token_monthly_quota. A null value does not mean token usage is unlimited or free.",
+        description="Deprecated: use platform_token_monthly_quota. Per-direction input-token figure; not enforced and not the billing basis. A null value does not mean token usage is unlimited or free.",
         title="Max Monthly Input Tokens",
     )
     max_monthly_output_tokens: int | None = Field(
         None,
         deprecated=True,
-        description="Legacy per-direction output-token figure; not enforced and not the billing basis. Use platform_token_monthly_quota. A null value does not mean token usage is unlimited or free.",
+        description="Deprecated: use platform_token_monthly_quota. Per-direction output-token figure; not enforced and not the billing basis. A null value does not mean token usage is unlimited or free.",
         title="Max Monthly Output Tokens",
     )
     platform_token_enforcement_limit: int | None = Field(
@@ -360,12 +453,11 @@ class OrganizationUpdate(BaseModel):
     Body for ``PATCH /v1/organization``.
 
     Deliberately narrow. ``status``, ``execution_locked`` and ``billing_channel``
-    are operator-controlled and are not writable from the tenant plane.
+    are operator-controlled and cannot be written through this API.
 
-    Forbidding costs forward-compatibility on this one write path, which is the
-    right trade for a tenant surface onto an operator-owned resource: a caller
-    who names a field they may not write gets a 422 that says so, rather than a
-    200 that may or may not have applied it.
+    Any field not listed here is refused: a caller who names a field they may
+    not write gets a 422 that says so, rather than a 200 that may or may not
+    have applied it.
     """
 
     model_config = ConfigDict(
@@ -376,99 +468,3 @@ class OrganizationUpdate(BaseModel):
     industry: str | None = Field(None, title="Industry")
     name: OrganizationUpdateName | None = Field(None, title="Name")
     website: str | None = Field(None, title="Website")
-
-
-class PaginatedFileList(BaseModel):
-    """
-    A page of file-manager entries.
-    """
-
-    items: list[FileEntryRead] = Field(..., title="Items")
-    page: int = Field(..., title="Page")
-    page_size: int = Field(..., title="Page Size")
-    total: int = Field(..., title="Total")
-    total_pages: int = Field(..., title="Total Pages")
-
-
-class PaginatedItemsResponse(BaseModel):
-    """
-    A list response: the returned items plus the full-collection total.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    items: list[dict[str, Any]] = Field(..., title="Items")
-    total: int = Field(..., title="Total")
-
-
-class PiiConfig(BaseModel):
-    """
-    The feature views marked as carrying personally identifiable information.
-
-    `pii_features` is a flat list of `view_name__feature_name` strings.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    pii_features: list[str] | None = Field([], title="Pii Features")
-
-
-class PredictionLogRead(BaseModel):
-    """
-    One logged prediction.
-
-    Only prediction metadata is retained; the model input and the prediction
-    payload are not.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    correlation_id: str | None = Field(None, title="Correlation Id")
-    created_at: str | None = Field(None, title="Created At")
-    family_id: str | None = Field(None, title="Family Id")
-    id: str | None = Field(None, title="Id")
-    intelligence_id: str | None = Field(None, title="Intelligence Id")
-    latency_ms: float | None = Field(None, title="Latency Ms")
-    model_id: str | None = Field(None, title="Model Id")
-    served_by: str | None = Field(None, title="Served By")
-
-
-class PredictionLoggingConfig(BaseModel):
-    """
-    Prediction-log retention and sampling for an intelligence.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    aggregate_to_daily: bool | None = Field(True, title="Aggregate To Daily")
-    aggregate_to_hourly: bool | None = Field(True, title="Aggregate To Hourly")
-    created_at: str | None = Field(None, title="Created At")
-    error_retention_days: int | None = Field(90, title="Error Retention Days")
-    id: str | None = Field(None, title="Id")
-    intelligence_id: str | None = Field(None, title="Intelligence Id")
-    retention_days: int | None = Field(30, title="Retention Days")
-    sampling_enabled: bool | None = Field(False, title="Sampling Enabled")
-    sampling_rate: float | None = Field(1.0, title="Sampling Rate")
-    updated_at: str | None = Field(None, title="Updated At")
-
-
-class PredictionLoggingConfigWrite(BaseModel):
-    """
-    New prediction-log retention and sampling settings.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    aggregate_to_daily: bool | None = Field(True, title="Aggregate To Daily")
-    aggregate_to_hourly: bool | None = Field(True, title="Aggregate To Hourly")
-    error_retention_days: int | None = Field(
-        90, ge=1, le=365, title="Error Retention Days"
-    )
-    retention_days: int | None = Field(30, ge=1, le=365, title="Retention Days")
-    sampling_enabled: bool | None = Field(False, title="Sampling Enabled")
-    sampling_rate: float | None = Field(1.0, ge=0.0, le=1.0, title="Sampling Rate")

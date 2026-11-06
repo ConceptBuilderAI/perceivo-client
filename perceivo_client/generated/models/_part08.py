@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,48 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class FileEntryUpdate(BaseModel):
+    """
+    Fields to change on a file or folder. Omitted fields are left alone.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    is_starred: bool | None = Field(
+        None, description="Star or unstar the entry", title="Is Starred"
+    )
+    name: FileEntryUpdateName | None = Field(
+        None, description="New entry name", title="Name"
+    )
+
+
+class FileTrashRestore(BaseModel):
+    """
+    The trashed files and folders to restore.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    entry_ids: list[UUID] = Field(
+        ...,
+        description="The trashed files and folders to restore, one to a hundred",
+        max_length=100,
+        min_length=1,
+        title="Entry Ids",
+    )
+
+
+class FileUploadStatus(StrEnum):
+    """
+    completed when the file was stored; error when it was refused
+    """
+
+    completed = "completed"
+    error = "error"
 
 
 class FileUploadItem(BaseModel):
@@ -391,82 +433,3 @@ class ImportResultRead(BaseModel):
         None, title="Unresolved Secrets"
     )
     validation_warnings: list[str] | None = Field(None, title="Validation Warnings")
-
-
-class InfraOverheadEntry(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    billing_trace_id: str | None = Field(
-        None,
-        description="Identifier of the billing run that wrote this row, for support correlation.",
-        title="Billing Trace Id",
-    )
-    category: str | None = Field(
-        None,
-        description="Infrastructure service, e.g. `milvus`, `mcp`.",
-        title="Category",
-    )
-    cost_usd: float | None = Field(
-        None, description="Charged cost, USD.", title="Cost Usd"
-    )
-    cpu_seconds: float | None = Field(
-        None, description="CPU seconds consumed.", title="Cpu Seconds"
-    )
-    cu_hours: float | None = Field(
-        None, description="Compute-unit hours charged.", title="Cu Hours"
-    )
-    gpu_seconds: float | None = Field(
-        None, description="GPU seconds consumed.", title="Gpu Seconds"
-    )
-    id: str = Field(..., description="Row identifier (UUID).", title="Id")
-    memory_gb_seconds: float | None = Field(
-        None, description="Memory GB-seconds consumed.", title="Memory Gb Seconds"
-    )
-    org_usage_snapshot_id: str | None = Field(
-        None,
-        description="The usage snapshot this row was derived from (see snapshots).",
-        title="Org Usage Snapshot Id",
-    )
-    period_end: str | None = Field(
-        None,
-        description="End of the billed interval (ISO 8601, UTC).",
-        title="Period End",
-    )
-    period_start: str | None = Field(
-        None,
-        description="Start of the billed interval (ISO 8601, UTC).",
-        title="Period Start",
-    )
-    rate_per_cu_hour_usd: float | None = Field(
-        None,
-        description="The per-CU-hour rate this row was priced at, USD.",
-        title="Rate Per Cu Hour Usd",
-    )
-    rate_type: str | None = Field(
-        None, description="Rate the row was priced at.", title="Rate Type"
-    )
-
-
-class InfraOverheadPage(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    entries: list[InfraOverheadEntry] = Field(
-        ..., description="This page, newest first.", title="Entries"
-    )
-    total_cost_usd: float = Field(
-        ...,
-        description="Sum of `cost_usd` across all matching rows.",
-        title="Total Cost Usd",
-    )
-    total_count: int = Field(
-        ...,
-        description="Rows matching the filters, across all pages.",
-        title="Total Count",
-    )
-    total_cu_hours: float = Field(
-        ...,
-        description="Sum of `cu_hours` across all matching rows.",
-        title="Total Cu Hours",
-    )

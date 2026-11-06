@@ -117,7 +117,7 @@ the raw archive SHA-256 comparison alongside the member comparison.
    release tooling, not in this repository) against the release reviewer and
    **every** name in *Required checks on `dev`* below. If it reports any control
    missing or changed, **do not tag**.
-3. **Tag.** Push `v<version>` (for example `v0.27.0rc1` or `v0.27.0`) on the
+3. **Tag.** Push `v<version>` (for example `v1.0.2rc1` or `v1.0.2`) on the
    merge commit of the release pull request, from an account that is **not** the
    `pypi` reviewer (see *Approving*). `scripts/check_release_tag.py` refuses a
    tag that is not in PEP 440 normal form, that differs from the

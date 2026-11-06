@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,63 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class IntelligenceStatusRead(BaseModel):
+    """
+    Intelligence asset status: the asset, its runtime, its services and its models.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    intelligence: IntelligenceRead
+    models: list[ModelRead] | None = Field(None, title="Models")
+    runtime: dict[str, Any] | None = Field(
+        None,
+        description="The runtime record, or null when the asset has never been started.",
+        title="Runtime",
+    )
+    services: list[IntelligenceServiceStatusRead] | None = Field(None, title="Services")
+
+
+class IntelligenceTrafficPlanFamily(BaseModel):
+    """
+    One model family's share of the intelligence's traffic, and its models.
+    """
+
+    family_id: UUID = Field(..., title="Family Id")
+    family_name: str | None = Field(None, title="Family Name")
+    models: list[IntelligenceTrafficPlanModel] = Field(..., title="Models")
+    traffic_percent: int | None = Field(
+        100, description="The family's share of all traffic", title="Traffic Percent"
+    )
+
+
+class IntelligenceTrafficPlanSpec(BaseModel):
+    """
+    A complete traffic plan: every family that serves, and its models.
+    """
+
+    families: list[IntelligenceTrafficPlanFamily] = Field(..., title="Families")
+
+
+class IntelligenceTrainingJobRead(BaseModel):
+    """
+    A training job of this intelligence and the runs it has produced.
+    """
+
+    completed_at: AwareDatetime | None = Field(None, title="Completed At")
+    created_at: AwareDatetime = Field(..., title="Created At")
+    error_message: str | None = Field(None, title="Error Message")
+    family_id: UUID = Field(..., title="Family Id")
+    hyperparameter_grid: dict[str, list[Any]] = Field(..., title="Hyperparameter Grid")
+    id: UUID = Field(..., title="Id")
+    intelligence_id: UUID = Field(..., title="Intelligence Id")
+    runs: list[IntelligenceTrainingRunRead] = Field(..., title="Runs")
+    started_at: AwareDatetime | None = Field(None, title="Started At")
+    status: str = Field(..., title="Status")
+    training_config: dict[str, Any] = Field(..., title="Training Config")
 
 
 class Invoice(BaseModel):
@@ -216,10 +273,8 @@ class PredictionPage(BaseModel):
 
     Note: **This is the page-based pagination envelope — ``data``/``page``/``page_size``/
     ``total``/``next`` — and not the ``items``/``limit``/``offset`` dialect the
-    older list operations on this service publish.** The difference is the
-    backing's, not a choice made here: ``list_predictions`` declares ``page`` and
-    ``page_size`` query parameters and builds a ``next`` URL. Renaming the fields
-    to match this service's older lists would describe a body that never arrives.
+    older list operations publish.** Page through it with the ``page`` and
+    ``page_size`` query parameters, or follow the ``next`` URL.
     """
 
     model_config = ConfigDict(
@@ -323,22 +378,11 @@ class SupportTicketListResponse(BaseModel):
         extra="allow",
     )
     data: list[TicketSummaryOut] = Field(..., title="Data")
-    next: str | None = Field(None, title="Next")
-    page: int = Field(..., title="Page")
-    page_size: int = Field(..., title="Page Size")
-    total: int = Field(..., title="Total")
-
-
-class ThreadListResponse(BaseModel):
-    """
-    A page of threads you are on.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
+    next: str | None = Field(
+        None,
+        description="Relative URL (path and query) of the next page, or null on the last page. Resolve it against the API base URL, https://api.perceivo.ai, and follow it rather than composing your own.",
+        title="Next",
     )
-    data: list[ThreadRead] | None = Field(None, title="Data")
-    next: str | None = Field(None, title="Next")
     page: int = Field(..., title="Page")
     page_size: int = Field(..., title="Page Size")
     total: int = Field(..., title="Total")
@@ -412,64 +456,3 @@ class ComponentExportDocument(BaseModel):
     export_type: Literal["component"] = Field("component", title="Export Type")
     export_version: str | None = Field("1.0", title="Export Version")
     exported_at: AwareDatetime = Field(..., title="Exported At")
-
-
-class ComponentImportBody(BaseModel):
-    """
-    A component export document to import into your organization.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    component: ComponentTransferData = Field(
-        ..., description="The exported component, unchanged from the export document."
-    )
-    export_type: Literal["component"] = Field(
-        "component",
-        description="Only a component export can be imported here.",
-        title="Export Type",
-    )
-    export_version: str | None = Field(
-        "1.0",
-        description="The export format version, as the export document gives it.",
-        title="Export Version",
-    )
-    exported_at: AwareDatetime | None = Field(
-        None,
-        description="When the export was made, as the export document gives it.",
-        title="Exported At",
-    )
-    new_name: str | None = Field(
-        None,
-        description="A name for the imported component, in place of the exported one.",
-        title="New Name",
-    )
-
-
-class ComponentValidationReport(BaseModel):
-    """
-    The result of validating a component definition.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    checks: list[ValidationCheck] | None = Field(
-        None, description="Every finding, in the order produced.", title="Checks"
-    )
-    derived_contract: dict[str, Any] | None = Field(
-        None,
-        description="The contract this validation ran against: the `contract` you supplied, or, when you supplied none, the `contract` block read from `manifest_yaml`. It is not inferred from your code.",
-        title="Derived Contract",
-    )
-    runtime_observations: RuntimeObservations | None = Field(
-        None,
-        description="What static analysis of the script found. The script is not run.",
-    )
-    summary: ValidationSummary | None = Field(
-        None, description="Finding counts by severity."
-    )
-    valid: bool | None = Field(
-        None, description="Whether the definition would be accepted.", title="Valid"
-    )

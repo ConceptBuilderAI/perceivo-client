@@ -89,7 +89,6 @@ class AsyncClient:
     alert_rules: _AsyncNamespace
     assets: _AsyncNamespace
     experiments: _AsyncNamespace
-    threads: _AsyncNamespace
 
     def __init__(
         self,

@@ -184,7 +184,7 @@ def test_every_namespace_is_a_row_of_the_namespace_table():
     namespaces = {n for n, v in vars(Client(api_key="k")).items() if hasattr(v, "_t")}
     rows = _namespace_table_rows(README_PATH.read_text(encoding="utf-8"))
 
-    assert len(namespaces) == 29
+    assert len(namespaces) == 28
     assert len(rows) == len(set(rows))
     assert set(rows) == namespaces
 

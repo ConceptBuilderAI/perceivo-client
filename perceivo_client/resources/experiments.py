@@ -126,10 +126,12 @@ class ExperimentsResource(BaseResource):
     def delete(self, experiment_id: str) -> ExperimentDeleteResponse:
         """Soft-delete an experiment (``DELETE /experiments/{experiment_id}``).
 
-        Only the deletion time is recorded: the experiment leaves the list and
-        its run, session and stop operations answer ``404`` from then on. A
-        running session is not stopped by the delete, so call :meth:`stop`
-        first. There is no undelete. The route answers ``200`` with an
+        Only an experiment whose status is ``DRAFT``, ``STOPPED`` or ``FAILED``
+        can be deleted. For one that is queued, starting, running, idle-warned
+        or stopping, call :meth:`stop`, wait for the stop to complete, then
+        delete it. A deleted experiment leaves the list and its run, session
+        and stop operations answer ``404`` from then on, as does repeating the
+        delete. There is no undelete. The route answers ``200`` with an
         ``ExperimentDeleteResponse``, not ``204``.
 
         Args:
@@ -142,10 +144,13 @@ class ExperimentsResource(BaseResource):
             ValueError: If ``experiment_id`` is empty, ``.`` or ``..`` (refused
                 before the request is sent).
             PerceivoAPIError: On an error response. The route declares ``404``
-                (``PerceivoNotFoundError``) for an experiment that does not exist or belongs to
-                another organization, ``422`` (``PerceivoValidationError``) for a malformed
-                request, and ``502`` (``PerceivoServerError``) when an upstream service fails,
-                in which case the delete may have been applied.
+                (``PerceivoNotFoundError``) for an experiment that does not exist, belongs to
+                another organization or is already deleted, ``409``
+                (``PerceivoConflictError``) for one in a status that cannot be deleted, with
+                nothing changed and the status in ``details["status"]``, ``422``
+                (``PerceivoValidationError``) for a malformed request, and ``502``
+                (``PerceivoServerError``) when an upstream service fails, in which case the
+                delete may have been applied.
             PerceivoConnectionError: If the API cannot be reached.
         """
         return self._model(

@@ -127,7 +127,9 @@ def test_population_is_the_whole_surface():
     # job ids (10 per store) and ``files.register_entries`` (``space_id``): 349 -> 370.
     # Group membership by principal adds 4: ``groups.add_member`` (``group_id``) and
     # ``groups.remove_principal`` (``group_id``, ``principal_type``, ``principal_id``).
-    assert len(_CASES) == 374, sorted(_CASES)
+    # Removing the thread methods takes 10 path arguments: 374 -> 364.
+    # Removing ``components.run`` takes its ``component_id``: 364 -> 363.
+    assert len(_CASES) == 363, sorted(_CASES)
     for ns in (
         "alert_channels",
         "alert_rules",
@@ -153,7 +155,6 @@ def test_population_is_the_whole_surface():
         "secrets",
         "service_accounts",
         "support",
-        "threads",
         "webhooks",
     ):
         assert by_ns[ns] > 0, f"no path argument discovered on {ns}"

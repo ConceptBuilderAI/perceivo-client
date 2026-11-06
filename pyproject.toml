@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "perceivo-client"
-version = "1.0.0"
+version = "1.0.1"
 description = "Public REST client SDK for the Perceivo Platform API (/v1)"
 readme = "README.md"
 requires-python = ">=3.11"

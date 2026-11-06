@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,64 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class TicketUpdate(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    category: Category | None = Field(
+        None,
+        description="The area of the platform the ticket concerns.",
+        title="Category",
+    )
+    components_affected: list[str] | None = Field(
+        None,
+        description="The names of the components the ticket concerns.",
+        title="Components Affected",
+    )
+    customer_email: str | None = Field(
+        None,
+        description="The email address of the person the ticket is for.",
+        title="Customer Email",
+    )
+    customer_name: str | None = Field(
+        None,
+        description="The name of the person the ticket is for.",
+        title="Customer Name",
+    )
+    description: str | None = Field(
+        None,
+        description="The full account of the problem or request.",
+        title="Description",
+    )
+    priority: str | None = Field(
+        None,
+        description="How urgent the ticket is: `critical`, `high`, `normal` or `low`.",
+        title="Priority",
+    )
+    tags: list[str] | None = Field(
+        None,
+        description="Free-form labels for finding and grouping tickets.",
+        title="Tags",
+    )
+    title: str | None = Field(
+        None,
+        description="A one-line summary of the problem or request, at most 256 characters.",
+        title="Title",
+    )
+
+
+class TrafficAllocationSpec(BaseModel):
+    """
+    One orchestration's share of a capability's traffic.
+    """
+
+    execution_mode: str | None = Field(None, title="Execution Mode")
+    orchestration_id: str = Field(..., title="Orchestration Id")
+    role: str = Field(..., title="Role")
+    traffic_percent: float = Field(..., title="Traffic Percent")
+    workload_config: dict[str, Any] | None = Field(None, title="Workload Config")
 
 
 class TrafficPlanRead(BaseModel):
@@ -303,6 +361,14 @@ class UnifiedCostResponse(BaseModel):
     total_entry_count: int | None = Field(None, title="Total Entry Count")
 
 
+class UpdateGraphConfigRequestRetainLastN(RootModel[int]):
+    root: int = Field(..., ge=0, le=2147483647, title="Retain Last N")
+
+
+class RollingWindowHours(RootModel[int]):
+    root: int = Field(..., ge=1, le=17000000, title="Rolling Window Hours")
+
+
 class UpdateGraphConfigRequest(BaseModel):
     """
     Update a graph configuration.
@@ -331,8 +397,12 @@ class UpdateGraphConfigRequest(BaseModel):
     log_types: list[str] | None = Field(None, title="Log Types")
     name: str | None = Field(None, title="Name")
     orchestration_ids: list[str] | None = Field(None, title="Orchestration Ids")
-    retain_last_n: int | None = Field(None, title="Retain Last N")
-    rolling_window_hours: int | None = Field(None, title="Rolling Window Hours")
+    retain_last_n: UpdateGraphConfigRequestRetainLastN | None = Field(
+        None, title="Retain Last N"
+    )
+    rolling_window_hours: RollingWindowHours | None = Field(
+        None, title="Rolling Window Hours"
+    )
     schedule_end: AwareDatetime | None = Field(None, title="Schedule End")
     schedule_start: AwareDatetime | None = Field(None, title="Schedule Start")
     target_intelligence_id: UUID | None = Field(None, title="Target Intelligence Id")
@@ -396,85 +466,3 @@ class UploadUrlFile(BaseModel):
         ge=0,
         title="Size Bytes",
     )
-
-
-class UploadUrlRequest(BaseModel):
-    """
-    The storage space a direct upload is destined for, and the one file.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    file_name: str = Field(
-        ...,
-        description="Name of the one file to upload",
-        max_length=255,
-        min_length=1,
-        title="File Name",
-    )
-    relative_path: RelativePath | None = Field(
-        None,
-        description="Folder within the space, e.g. reports/2026",
-        title="Relative Path",
-    )
-    size_bytes: int = Field(
-        ...,
-        description="Size of the file in bytes, checked against the storage quota",
-        ge=0,
-        title="Size Bytes",
-    )
-    space_id: UUID = Field(
-        ..., description="Storage space the upload is destined for", title="Space Id"
-    )
-
-
-class UploadUrlsRequest(BaseModel):
-    """
-    The storage space the uploads are destined for, and up to 100 files.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    files: list[UploadUrlFile] = Field(
-        ...,
-        description="The files to upload, one to a hundred; their total size is checked against the space's storage quota once",
-        max_length=100,
-        min_length=1,
-        title="Files",
-    )
-    space_id: UUID = Field(
-        ..., description="Storage space the uploads are destined for", title="Space Id"
-    )
-
-
-class UploadUrlsResponse(BaseModel):
-    """
-    One upload URL per requested file, in request order.
-    """
-
-    targets: list[UploadTargetResponse] = Field(
-        ..., description="One target per file, in request order", title="Targets"
-    )
-
-
-class UsageBreakdownResponse(BaseModel):
-    """
-    ``GET /v1/billing/usage/breakdown`` — per-service usage breakdown.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    elasticsearch: dict[str, Any] | None = Field(None, title="Elasticsearch")
-    intelligence: dict[str, Any] | None = Field(None, title="Intelligence")
-    mcp: dict[str, Any] | None = Field(None, title="Mcp")
-    milvus: dict[str, Any] | None = Field(None, title="Milvus")
-    organization_id: str | None = Field(None, title="Organization Id")
-    period_end: str | None = Field(None, title="Period End")
-    period_start: str | None = Field(None, title="Period Start")
-    ray: dict[str, Any] | None = Field(None, title="Ray")
-    redis: dict[str, Any] | None = Field(None, title="Redis")
-    snapshot_count: int | None = Field(None, title="Snapshot Count")
-    total: dict[str, Any] | None = Field(None, title="Total")

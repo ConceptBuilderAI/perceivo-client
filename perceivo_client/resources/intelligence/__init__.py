@@ -20,7 +20,7 @@ from perceivo_client.generated.models import (
     BatchPredictionResponse,
     DriftBaselineRead,
     DriftConfig,
-    EvaluationRead,
+    EvaluationQueued,
     FeatureViewRead,
     IngestResponse,
     IngestTriggerRead,

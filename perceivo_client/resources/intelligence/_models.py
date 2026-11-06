@@ -10,7 +10,7 @@ from typing import Any
 
 from perceivo_client._paths import segment
 from perceivo_client.generated.models import (
-    EvaluationRead,
+    EvaluationQueued,
     IntelligenceTrainingJobRead,
     ModelFamilyRead,
     ModelLifecycleResult,
@@ -60,18 +60,21 @@ class _ModelsMixin(_MixinBase):
         )
 
     # -- evaluation & models ----------------------------------------------
-    def evaluate(self, intelligence_id: str, body: dict[str, Any] | None = None) -> EvaluationRead:
-        """Evaluate the intelligence's models (``POST .../evaluate``).
+    def evaluate(
+        self, intelligence_id: str, body: dict[str, Any] | None = None
+    ) -> EvaluationQueued:
+        """Queue an evaluation of the intelligence's models (``POST .../evaluate``).
 
-        Evaluation consumes compute.
+        The run starts asynchronously: a ``202`` means it was queued, not that it
+        finished. Evaluation consumes compute.
 
         Args:
             intelligence_id: The intelligence to evaluate.
-            body: An optional ``EvaluateRequest`` object. Omitted, an empty
-                object is sent.
+            body: An ``EvaluateRequest`` object. ``trigger_type`` is required, so
+                omitting ``body`` sends an empty object and answers ``422``.
 
         Returns:
-            :class:`EvaluationRead` — the evaluation record.
+            :class:`EvaluationQueued` — the queued run, not its result.
 
         Raises:
             ValueError: If ``intelligence_id`` is empty, ``.`` or ``..``
@@ -81,7 +84,7 @@ class _ModelsMixin(_MixinBase):
             PerceivoConnectionError: If the API cannot be reached.
         """
         return self._model(
-            EvaluationRead,
+            EvaluationQueued,
             self._post(
                 f"{_BASE}/{segment(intelligence_id, 'intelligence_id')}/evaluate", json=body or {}
             ),

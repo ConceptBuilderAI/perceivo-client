@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,73 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class IntelligenceServiceStatusRead(BaseModel):
+    """
+    A service the intelligence asset configures.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    name: str = Field(..., title="Name")
+    ready_replicas: int | None = Field(None, title="Ready Replicas")
+    replicas: int | None = Field(None, title="Replicas")
+    status: str = Field(..., title="Status")
+    type: str = Field(..., title="Type")
+    url: str | None = Field(None, title="Url")
+
+
+class IntelligenceSnapshotsResponse(BaseModel):
+    """
+    ``GET /v1/billing/intelligence-snapshots`` — paginated snapshots.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    limit: int | None = Field(None, title="Limit")
+    offset: int | None = Field(None, title="Offset")
+    snapshots: list[dict[str, Any]] | None = Field(None, title="Snapshots")
+    total: int | None = Field(None, title="Total")
+
+
+class IntelligenceStartResult(BaseModel):
+    """
+    The start was accepted. Poll the asset's status for readiness.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    job_ids: dict[str, str] | None = Field(
+        None,
+        description="Queued job per service type; empty when nothing was queued.",
+        title="Job Ids",
+    )
+    message: str = Field(..., title="Message")
+    status: str = Field(
+        ...,
+        description="The runtime's status once the start was accepted.",
+        title="Status",
+    )
+
+
+class Source(StrEnum):
+    manual = "manual"
+    recommendation = "recommendation"
+    rollback = "rollback"
+
+
+class IntelligenceTrafficPlanModel(BaseModel):
+    """
+    One model's role and share within a model family.
+    """
+
+    model_id: UUID = Field(..., title="Model Id")
+    role: str = Field(..., description="`champion`, `canary` or `shadow`", title="Role")
+    traffic_percent: int = Field(..., title="Traffic Percent")
 
 
 class IntelligenceTrafficPlanResult(BaseModel):
@@ -402,74 +469,4 @@ class McpConfigDocument(BaseModel):
         ...,
         description="Minutes of inactivity before an idle shutdown.",
         title="Idle Timeout Minutes",
-    )
-
-
-class McpConfigReplace(BaseModel):
-    """
-    A complete replacement MCP server configuration.
-
-    Both fields are required: this operation replaces the configuration rather
-    than merging into it, so the document you send is the document that results.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    auto_shutdown: bool = Field(
-        ...,
-        description="Whether the server shuts down after a period of inactivity.",
-        title="Auto Shutdown",
-    )
-    idle_timeout_minutes: int = Field(
-        ...,
-        description="Minutes of inactivity before an idle shutdown.",
-        ge=5,
-        le=1440,
-        title="Idle Timeout Minutes",
-    )
-
-
-class McpToolInvokeRequest(BaseModel):
-    """
-    Arguments for an MCP tool invocation.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    arguments: dict[str, Any] | None = Field(
-        None,
-        description="The tool's arguments, as the tool's own schema declares them.",
-        title="Arguments",
-    )
-
-
-class McpToolInvokeResult(BaseModel):
-    """
-    The result of an MCP tool invocation.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-
-
-class McpToolList(BaseModel):
-    """
-    The tools the MCP server currently exposes.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-
-
-class Message(RootModel[str]):
-    root: str = Field(
-        ...,
-        description="A note included in the invitation e-mail.",
-        max_length=1000,
-        min_length=1,
-        title="Message",
     )

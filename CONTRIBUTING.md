@@ -79,7 +79,7 @@ pytest tests
 - **Wrapper paths.** Every resource method must call an operation in the vendored OpenAPI
   document; `tests/test_spec_conformance.py` enforces this.
 - **Public API.** Public functions, methods and classes need type hints and a docstring.
-- **Changelog.** Describe user-visible changes under `## [Unreleased]` in
+- **Changelog.** Describe user-visible changes under a new `## [Unreleased]` heading at the top of
   [CHANGELOG.md](./CHANGELOG.md).
 - **Scope.** Keep each pull request to one logical change.
 

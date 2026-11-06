@@ -361,6 +361,9 @@ class _ClusterMixin(_MixinBase):
     def list_mcp_tools(self) -> McpToolList:
         """List the running MCP server's tools (``GET .../cluster/mcp/tools``).
 
+        MCP server start, stop and status work. Tool listing and tool
+        invocation are unavailable in this release; this method returns a 503.
+
         Returns:
             :class:`McpToolList` — ``tools`` (each with ``name``,
             ``description`` and ``input_schema``) and ``count``. A server still
@@ -370,6 +373,7 @@ class _ClusterMixin(_MixinBase):
             PerceivoGrantError: For a key without ``INFRA_READ`` (``403``).
             PerceivoConflictError: While the MCP server is not running
                 (``409``).
+            PerceivoServerError: In this release (``503``).
             PerceivoAPIError: On any other error response.
             PerceivoConnectionError: If the API cannot be reached.
         """
@@ -379,6 +383,9 @@ class _ClusterMixin(_MixinBase):
         self, tool_name: str, body: dict[str, Any] | None = None
     ) -> McpToolInvokeResult:
         """Run one of the MCP server's tools (``POST .../cluster/mcp/tools/{tool}/invoke``).
+
+        MCP server start, stop and status work. Tool listing and tool
+        invocation are unavailable in this release; this method returns a 503.
 
         Synchronous: the call waits for the tool, up to 120 s. Tool execution
         is billed, and its side effects are the tool's own.
@@ -403,6 +410,7 @@ class _ClusterMixin(_MixinBase):
                 (``409``).
             PerceivoExecutionLockedError: For an organization whose execution
                 is locked (``429``).
+            PerceivoServerError: In this release (``503``).
             PerceivoAPIError: On any other error response.
             PerceivoConnectionError: If the API cannot be reached.
         """

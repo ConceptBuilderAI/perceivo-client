@@ -29,7 +29,6 @@ from perceivo_client.resources.runs import RunsResource
 from perceivo_client.resources.secrets import SecretsResource
 from perceivo_client.resources.service_accounts import ServiceAccountsResource
 from perceivo_client.resources.support import SupportResource
-from perceivo_client.resources.threads import ThreadsResource
 from perceivo_client.resources.webhooks import WebhooksResource
 
 __all__ = [
@@ -60,6 +59,5 @@ __all__ = [
     "SecretsResource",
     "ServiceAccountsResource",
     "SupportResource",
-    "ThreadsResource",
     "WebhooksResource",
 ]

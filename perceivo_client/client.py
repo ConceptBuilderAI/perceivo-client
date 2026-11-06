@@ -41,7 +41,6 @@ from perceivo_client.resources import (
     SecretsResource,
     ServiceAccountsResource,
     SupportResource,
-    ThreadsResource,
     WebhooksResource,
 )
 from perceivo_client.signing import RequestSigner, resolve_signing_credentials
@@ -108,7 +107,7 @@ class Client:
         ``support``, ``secrets``, ``infrastructure``, ``roles``,
         ``service_accounts``, ``organization``, ``members``, ``invitations``,
         ``groups``, ``grants``, ``operations``, ``query``, ``alert_channels``,
-        ``alert_rules``, ``assets``, ``experiments`` and ``threads``.
+        ``alert_rules``, ``assets`` and ``experiments``.
     """
 
     def __init__(
@@ -198,7 +197,6 @@ class Client:
         self.alert_rules = AlertRulesResource(self._transport)
         self.assets = AssetsResource(self._transport)
         self.experiments = ExperimentsResource(self._transport)
-        self.threads = ThreadsResource(self._transport)
 
     @property
     def base_url(self) -> str:

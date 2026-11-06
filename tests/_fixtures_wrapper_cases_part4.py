@@ -152,23 +152,6 @@ CASES = [
     (lambda c: c.support.list_attachments("x0"), "GET", f"{B}/support/tickets/x0/attachments"),
     (lambda c: c.support.list_comments("x0"), "GET", f"{B}/support/tickets/x0/comments"),
     (lambda c: c.support.update("x0", {}), "PATCH", f"{B}/support/tickets/x0"),
-    # --- threads ---
-    (lambda c: c.threads.acknowledge("x0"), "POST", f"{B}/threads/x0/acknowledge"),
-    (lambda c: c.threads.add_participant("x0", {}), "POST", f"{B}/threads/x0/participants"),
-    (lambda c: c.threads.create({}), "POST", f"{B}/threads"),
-    (lambda c: c.threads.create_message("x0", {}), "POST", f"{B}/threads/x0/messages"),
-    (lambda c: c.threads.delete("x0"), "DELETE", f"{B}/threads/x0"),
-    (lambda c: c.threads.get("x0"), "GET", f"{B}/threads/x0"),
-    (lambda c: c.threads.list(), "GET", f"{B}/threads"),
-    (lambda c: c.threads.list_messages("x0"), "GET", f"{B}/threads/x0/messages"),
-    (lambda c: c.threads.list_participants("x0"), "GET", f"{B}/threads/x0/participants"),
-    (
-        lambda c: c.threads.remove_participant("x0", "x1"),
-        "DELETE",
-        f"{B}/threads/x0/participants/x1",
-    ),
-    (lambda c: c.threads.search("x0"), "GET", f"{B}/threads/search"),
-    (lambda c: c.threads.update("x0", {}), "PATCH", f"{B}/threads/x0"),
     # --- webhooks ---
     (lambda c: c.webhooks.create({}), "POST", f"{B}/webhooks"),
     (lambda c: c.webhooks.delete("x0"), "DELETE", f"{B}/webhooks/x0"),

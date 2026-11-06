@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -12,6 +12,168 @@ from uuid import UUID
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
 
 from ._part06 import DetailRefusal, EdgeRefusal, ErrorResponse
+
+
+class PaginatedFileList(BaseModel):
+    """
+    A page of file-manager entries.
+    """
+
+    items: list[FileEntryRead] = Field(..., title="Items")
+    page: int = Field(..., title="Page")
+    page_size: int = Field(..., title="Page Size")
+    total: int = Field(..., title="Total")
+    total_pages: int = Field(..., title="Total Pages")
+
+
+class PaginatedItemsResponse(BaseModel):
+    """
+    A list response: the returned items plus the full-collection total.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    items: list[dict[str, Any]] = Field(..., title="Items")
+    total: int = Field(..., title="Total")
+
+
+class PiiConfig(BaseModel):
+    """
+    The feature views marked as carrying personally identifiable information.
+
+    `pii_features` is a flat list of `view_name__feature_name` strings.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    pii_features: list[str] | None = Field([], title="Pii Features")
+
+
+class PredictionLogRead(BaseModel):
+    """
+    One logged prediction.
+
+    Only prediction metadata is retained; the model input and the prediction
+    payload are not.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    correlation_id: str | None = Field(None, title="Correlation Id")
+    created_at: str | None = Field(None, title="Created At")
+    family_id: str | None = Field(None, title="Family Id")
+    id: str | None = Field(None, title="Id")
+    intelligence_id: str | None = Field(None, title="Intelligence Id")
+    latency_ms: float | None = Field(None, title="Latency Ms")
+    model_id: str | None = Field(None, title="Model Id")
+    served_by: str | None = Field(None, title="Served By")
+
+
+class PredictionLoggingConfig(BaseModel):
+    """
+    Prediction-log retention and sampling for an intelligence.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    aggregate_to_daily: bool | None = Field(True, title="Aggregate To Daily")
+    aggregate_to_hourly: bool | None = Field(True, title="Aggregate To Hourly")
+    created_at: str | None = Field(None, title="Created At")
+    error_retention_days: int | None = Field(90, title="Error Retention Days")
+    id: str | None = Field(None, title="Id")
+    intelligence_id: str | None = Field(None, title="Intelligence Id")
+    retention_days: int | None = Field(30, title="Retention Days")
+    sampling_enabled: bool | None = Field(False, title="Sampling Enabled")
+    sampling_rate: float | None = Field(1.0, title="Sampling Rate")
+    updated_at: str | None = Field(None, title="Updated At")
+
+
+class PredictionLoggingConfigWrite(BaseModel):
+    """
+    New prediction-log retention and sampling settings.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    aggregate_to_daily: bool | None = Field(True, title="Aggregate To Daily")
+    aggregate_to_hourly: bool | None = Field(True, title="Aggregate To Hourly")
+    error_retention_days: int | None = Field(
+        90, ge=1, le=365, title="Error Retention Days"
+    )
+    retention_days: int | None = Field(30, ge=1, le=365, title="Retention Days")
+    sampling_enabled: bool | None = Field(False, title="Sampling Enabled")
+    sampling_rate: float | None = Field(1.0, ge=0.0, le=1.0, title="Sampling Rate")
+
+
+class PredictionOutcomeCreate(BaseModel):
+    """
+    An outcome or feedback event to record against one prediction.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    entity_id: str | None = Field(
+        None,
+        description="The entity the outcome is about, such as a customer.",
+        title="Entity Id",
+    )
+    event_type: str | None = Field(
+        "feedback",
+        description="The outcome event type. Defaults to `feedback`.",
+        title="Event Type",
+    )
+    ground_truth: dict[str, Any] | None = Field(
+        None,
+        description='Structured ground truth, for example `{"label": "approved"}`.',
+        title="Ground Truth",
+    )
+    item_id: str | None = Field(
+        None,
+        description="The item the outcome is about, such as a product.",
+        title="Item Id",
+    )
+    metadata: dict[str, Any] | None = Field(
+        None, description="Free-form context stored with the event.", title="Metadata"
+    )
+    model_id: str | None = Field(
+        None,
+        description="The model that served the prediction, when known.",
+        title="Model Id",
+    )
+    outcome: str | None = Field(
+        None,
+        description="Categorical outcome label, for example `correct`, `incorrect` or `approved`.",
+        title="Outcome",
+    )
+    session_id: str | None = Field(
+        None, description="The session the outcome was observed in.", title="Session Id"
+    )
+    value: float | None = Field(
+        None,
+        description="Numeric outcome value, such as revenue or a score.",
+        title="Value",
+    )
+
+
+class PredictionOutcomeRecorded(BaseModel):
+    """
+    The outcome event that was recorded.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    event_type: str = Field(..., title="Event Type")
+    id: str = Field(..., title="Id")
+    intelligence_id: str = Field(..., title="Intelligence Id")
+    logged_at: str = Field(..., title="Logged At")
+    prediction_id: str = Field(..., title="Prediction Id")
 
 
 class PredictionOutcomes(BaseModel):
@@ -66,8 +228,8 @@ class PredictionResponse(BaseModel):
 
     The ``prediction`` payload is model-defined — its concrete shape is set by the
     deployed model's inference contract — so it is typed as a free-form value rather
-    than a fixed schema. ``correlation_id`` is always injected by the serving layer so
-    the prediction can be linked to downstream outcome events. Model-specific extras
+    than a fixed schema. ``correlation_id`` is always set so the prediction can be
+    linked to later outcome events. Model-specific extras
     (e.g. ``metadata`` sub-fields) are preserved via ``extra="allow"``.
     """
 
@@ -309,169 +471,4 @@ class RegisterFileEntry(BaseModel):
     )
     version_comment: str | None = Field(
         None, description="Comment for this version", title="Version Comment"
-    )
-
-
-class RegisterFileItem(BaseModel):
-    """
-    One uploaded file to register as an entry.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    blob_name: str = Field(
-        ...,
-        description="Blob path returned by the upload URL",
-        max_length=1024,
-        title="Blob Name",
-    )
-    checksum_md5: str | None = Field(
-        None, description="MD5 of the uploaded blob", title="Checksum Md5"
-    )
-    file_name: str = Field(
-        ..., description="Display name for the entry", max_length=255, title="File Name"
-    )
-    file_path: str = Field(
-        ...,
-        description="Virtual path within the space",
-        max_length=1024,
-        title="File Path",
-    )
-    mime_type: str | None = Field(
-        "application/octet-stream", description="Content type", title="Mime Type"
-    )
-    parent_id: UUID | None = Field(
-        None, description="Parent folder; null for the root", title="Parent Id"
-    )
-    size_bytes: int = Field(
-        ..., description="Size of the uploaded blob in bytes", ge=0, title="Size Bytes"
-    )
-    version_comment: str | None = Field(
-        None, description="Comment for this version", title="Version Comment"
-    )
-
-
-class RegisterFileOutcome(BaseModel):
-    """
-    What happened to one submitted file.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    detail: str | None = Field(
-        None, description="Why the file was not registered", title="Detail"
-    )
-    entry_id: UUID | None = Field(
-        None, description="The entry, when registered", title="Entry Id"
-    )
-    file_name: str = Field(
-        ..., description="The file's name, as submitted", title="File Name"
-    )
-    file_path: str = Field(
-        ..., description="The file's path, as submitted", title="File Path"
-    )
-    index: int = Field(
-        ..., description="The file's position in the request, from 0", title="Index"
-    )
-    status: str = Field(..., description="`registered` or `failed`", title="Status")
-    status_code: int | None = Field(
-        None,
-        description="The status a single registration would have answered",
-        title="Status Code",
-    )
-
-
-class ResidualGroupPrivileges(BaseModel):
-    """
-    Organization privileges a member still holds through one group.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    group_id: UUID = Field(..., title="Group Id")
-    group_name: str = Field(..., title="Group Name")
-    privileges: list[str] = Field(..., title="Privileges")
-
-
-class ResourceBreakdownResponse(BaseModel):
-    """
-    ``GET /v1/billing/resource-breakdown``.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    intelligences: dict[str, Any] | None = Field(None, title="Intelligences")
-    namespace: str | None = Field(None, title="Namespace")
-    orchestrations: dict[str, Any] | None = Field(None, title="Orchestrations")
-    organization_id: str | None = Field(None, title="Organization Id")
-    overhead_total: dict[str, Any] | None = Field(None, title="Overhead Total")
-    period_end: str | None = Field(None, title="Period End")
-    period_start: str | None = Field(None, title="Period Start")
-    ray: dict[str, Any] | None = Field(None, title="Ray")
-    redis: dict[str, Any] | None = Field(None, title="Redis")
-    total: dict[str, Any] | None = Field(None, title="Total")
-    variable_total: dict[str, Any] | None = Field(None, title="Variable Total")
-
-
-class ReviewAssign(BaseModel):
-    """
-    Who a review is handed to.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    assignee_group_id: str | None = Field(
-        None,
-        description="The group to hand the review to, when assigning to a group.",
-        title="Assignee Group Id",
-    )
-    assignee_user_sub: str | None = Field(
-        None,
-        description="The user to hand the review to, when assigning to a user.",
-        title="Assignee User Sub",
-    )
-    assignment_type: str = Field(
-        ...,
-        description="Whether the review is handed to a user, a group, or a pool.",
-        title="Assignment Type",
-    )
-
-
-class ReviewComplete(BaseModel):
-    """
-    Reviewer's answers for a pending review.
-
-    Completing the last blocking review on a workload resumes the parked run.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    response_data: dict[str, Any] = Field(
-        ...,
-        description="Reviewer answers keyed by the question ids declared in the review's survey_spec. Required.",
-        title="Response Data",
-    )
-
-
-class ReviewDraft(BaseModel):
-    """
-    Partial reviewer answers, saved without submitting the decision.
-
-    Saving a draft on a pending review moves it to in-progress. A later save
-    replaces the whole draft; it does not merge into it.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    draft_data: dict[str, Any] = Field(
-        ...,
-        description="Partial reviewer answers keyed by the question ids declared in the review's survey_spec. Required.",
-        title="Draft Data",
     )

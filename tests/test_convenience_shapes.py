@@ -193,13 +193,6 @@ QUERY_CASES = [
         "GET",
         "/v1/billing/usage-summary",
     ),
-    (lambda c: c.threads.list(probe_key="probe_val"), "GET", "/v1/threads"),
-    (lambda c: c.threads.search("x0", probe_key="probe_val"), "GET", "/v1/threads/search"),
-    (
-        lambda c: c.threads.list_messages("x0", probe_key="probe_val"),
-        "GET",
-        "/v1/threads/x0/messages",
-    ),
     (lambda c: c.reviews.list(probe_key="probe_val"), "GET", "/v1/reviews"),
     (lambda c: c.support.list(probe_key="probe_val"), "GET", "/v1/support/tickets"),
 ]

@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,85 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class InfraOverheadEntry(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    billing_trace_id: str | None = Field(
+        None,
+        description="Identifier of the billing run that wrote this row, for support correlation.",
+        title="Billing Trace Id",
+    )
+    category: str | None = Field(
+        None,
+        description="Infrastructure service, e.g. `milvus`, `mcp`.",
+        title="Category",
+    )
+    cost_usd: float | None = Field(
+        None, description="Charged cost, USD.", title="Cost Usd"
+    )
+    cpu_seconds: float | None = Field(
+        None, description="CPU seconds consumed.", title="Cpu Seconds"
+    )
+    cu_hours: float | None = Field(
+        None, description="Compute-unit hours charged.", title="Cu Hours"
+    )
+    gpu_seconds: float | None = Field(
+        None, description="GPU seconds consumed.", title="Gpu Seconds"
+    )
+    id: str = Field(..., description="Row identifier (UUID).", title="Id")
+    memory_gb_seconds: float | None = Field(
+        None, description="Memory GB-seconds consumed.", title="Memory Gb Seconds"
+    )
+    org_usage_snapshot_id: str | None = Field(
+        None,
+        description="The usage snapshot this row was derived from (see snapshots).",
+        title="Org Usage Snapshot Id",
+    )
+    period_end: str | None = Field(
+        None,
+        description="End of the billed interval (ISO 8601, UTC).",
+        title="Period End",
+    )
+    period_start: str | None = Field(
+        None,
+        description="Start of the billed interval (ISO 8601, UTC).",
+        title="Period Start",
+    )
+    rate_per_cu_hour_usd: float | None = Field(
+        None,
+        description="The per-CU-hour rate this row was priced at, USD.",
+        title="Rate Per Cu Hour Usd",
+    )
+    rate_type: str | None = Field(
+        None, description="Rate the row was priced at.", title="Rate Type"
+    )
+
+
+class InfraOverheadPage(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    entries: list[InfraOverheadEntry] = Field(
+        ..., description="This page, newest first.", title="Entries"
+    )
+    total_cost_usd: float = Field(
+        ...,
+        description="Sum of `cost_usd` across all matching rows.",
+        title="Total Cost Usd",
+    )
+    total_count: int = Field(
+        ...,
+        description="Rows matching the filters, across all pages.",
+        title="Total Count",
+    )
+    total_cu_hours: float = Field(
+        ...,
+        description="Sum of `cu_hours` across all matching rows.",
+        title="Total Cu Hours",
+    )
 
 
 class InfrastructureCostReport(BaseModel):
@@ -396,70 +475,3 @@ class IntelligenceRuntimeRead(BaseModel):
     )
     stopped_at: str | None = Field(None, title="Stopped At")
     updated_at: str = Field(..., title="Updated At")
-
-
-class IntelligenceServiceStatusRead(BaseModel):
-    """
-    A service the intelligence asset configures.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    name: str = Field(..., title="Name")
-    ready_replicas: int | None = Field(None, title="Ready Replicas")
-    replicas: int | None = Field(None, title="Replicas")
-    status: str = Field(..., title="Status")
-    type: str = Field(..., title="Type")
-    url: str | None = Field(None, title="Url")
-
-
-class IntelligenceSnapshotsResponse(BaseModel):
-    """
-    ``GET /v1/billing/intelligence-snapshots`` — paginated snapshots.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    limit: int | None = Field(None, title="Limit")
-    offset: int | None = Field(None, title="Offset")
-    snapshots: list[dict[str, Any]] | None = Field(None, title="Snapshots")
-    total: int | None = Field(None, title="Total")
-
-
-class IntelligenceStartResult(BaseModel):
-    """
-    The start was accepted. Poll the asset's status for readiness.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    job_ids: dict[str, str] | None = Field(
-        None,
-        description="Queued job per service type; empty when nothing was queued.",
-        title="Job Ids",
-    )
-    message: str = Field(..., title="Message")
-    status: str = Field(
-        ...,
-        description="The runtime's status once the start was accepted.",
-        title="Status",
-    )
-
-
-class Source(StrEnum):
-    manual = "manual"
-    recommendation = "recommendation"
-    rollback = "rollback"
-
-
-class IntelligenceTrafficPlanModel(BaseModel):
-    """
-    One model's role and share within a model family.
-    """
-
-    model_id: UUID = Field(..., title="Model Id")
-    role: str = Field(..., description="`champion`, `canary` or `shadow`", title="Role")
-    traffic_percent: int = Field(..., title="Traffic Percent")

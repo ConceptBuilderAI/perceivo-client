@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,171 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class RunOverheadResponse(BaseModel):
+    """
+    ``GET /v1/billing/run-overhead/{run_id}`` — component vs overhead split
+    for one run.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    is_final: bool | None = Field(None, title="Is Final")
+    overhead_cost_usd: float | None = Field(None, title="Overhead Cost Usd")
+    overhead_cu_hours: float | None = Field(None, title="Overhead Cu Hours")
+    overhead_duration_ms: int | None = Field(None, title="Overhead Duration Ms")
+    run_id: str | None = Field(None, title="Run Id")
+    total_component_cost_usd: float | None = Field(
+        None, title="Total Component Cost Usd"
+    )
+    total_component_duration_ms: int | None = Field(
+        None, title="Total Component Duration Ms"
+    )
+
+
+class RunResult(BaseModel):
+    """
+    The output of a run.
+
+    ``output_payload`` is null until the run reaches a terminal status. A run
+    that failed carries its terminal ``status`` and ``error_message``.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    artifact: dict[str, Any] | None = Field(None, title="Artifact")
+    completed_at: str | None = Field(None, title="Completed At")
+    error_message: str | None = Field(None, title="Error Message")
+    orchestration_id: str | None = Field(None, title="Orchestration Id")
+    output_payload: dict[str, Any] | None = Field(None, title="Output Payload")
+    run_id: str = Field(..., title="Run Id")
+    started_at: str | None = Field(None, title="Started At")
+    status: str | None = Field(None, title="Status")
+    workload_id: str | None = Field(None, title="Workload Id")
+
+
+class RunStatus(BaseModel):
+    """
+    The status of a run.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    completed_at: str | None = Field(None, title="Completed At")
+    error: str | None = Field(None, title="Error")
+    orchestration_id: str | None = Field(None, title="Orchestration Id")
+    run_id: str = Field(..., title="Run Id")
+    started_at: str | None = Field(None, title="Started At")
+    status: str | None = Field(None, title="Status")
+    workload_id: str | None = Field(None, title="Workload Id")
+
+
+class RunSteps(BaseModel):
+    """
+    Per-node execution detail for one run of a workload.
+
+    Each entry in ``steps`` describes one node's activity, including when it
+    first and last executed and one span per execution. A node that ran more
+    than once has more than one span.
+
+    Note: ``count`` is the number of steps **in this response**, which is the whole
+    set for the run — this collection is not windowed.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    count: int | None = Field(
+        None, description="Number of steps returned.", title="Count"
+    )
+    run_id: str | None = Field(None, title="Run Id")
+    run_number: int | None = Field(None, title="Run Number")
+    status: str | None = Field(
+        None, description="Status of the run described.", title="Status"
+    )
+    steps: list[dict[str, Any]] | None = Field(
+        None, description="One entry per node that executed.", title="Steps"
+    )
+    workload_id: str = Field(..., title="Workload Id")
+
+
+class RunSummary(BaseModel):
+    """
+    One run. ``run_id`` is accepted by every ``/v1/orchestrations/runs/{run_id}`` operation.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    completed_at: str | None = Field(None, title="Completed At")
+    error: str | None = Field(None, title="Error")
+    orchestration_id: str | None = Field(None, title="Orchestration Id")
+    queued_at: str | None = Field(None, title="Queued At")
+    run_id: str = Field(..., title="Run Id")
+    source: str | None = Field(None, title="Source")
+    started_at: str | None = Field(None, title="Started At")
+    status: str | None = Field(None, title="Status")
+    workload_id: str | None = Field(None, title="Workload Id")
+    workload_type: str | None = Field(None, title="Workload Type")
+
+
+class RuntimeObservations(BaseModel):
+    """
+    What static analysis of the script found. The script is never run.
+
+    Despite the name, nothing here observes an execution. The validator parses
+    the script into a syntax tree and inspects it; it does not import, evaluate
+    or run any part of it, in a sandbox or otherwise. Every field below is a
+    property of the source **text**, so each is a lower bound: anything a
+    program assembles at run time is invisible to all three.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    calls: list[str] | None = Field(
+        None,
+        description="Platform SDK calls that appear in the script's source, as dotted names such as `perceivo.log.info`. Sorted and de-duplicated: a call written once and a call written in a loop both appear once, a call inside an unreachable branch still appears, and no arguments, ordering or counts are reported. This is what the code *contains*, not what it did.",
+        title="Calls",
+    )
+    detected_hosts: list[str] | None = Field(
+        None,
+        description="Hostnames of `http://` and `https://` URLs written as literal strings in the script.\n\nNote: This is not a list of the hosts the component will contact, and an empty list is not evidence that it contacts none. The check is a pattern match over string literals, so a URL the script assembles at run time — by concatenation, formatting, an f-string, an environment variable or a configuration value — does not appear here. Use it to notice hard-coded endpoints, not to establish that a component has no egress.",
+        title="Detected Hosts",
+    )
+    logs: list[str] | None = Field(
+        None,
+        description="Notes from the validator recording which groups of checks it ran. These are the validator's own messages — the script is not run, so it emits nothing. Present only when `validation_profile` is `full`.",
+        title="Logs",
+    )
+
+
+class SearchIndexCreated(BaseModel):
+    """
+    The index was created.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    created: bool = Field(..., description="Always true on success.", title="Created")
+    index: str = Field(..., description="Name of the index created.", title="Index")
+
+
+class SearchIndexDeleted(BaseModel):
+    """
+    The index and everything in it were deleted.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    deleted: bool = Field(..., description="Always true on success.", title="Deleted")
+    index: str = Field(..., description="Name of the index deleted.", title="Index")
 
 
 class SecretCreate(BaseModel):
@@ -303,178 +468,3 @@ class ServiceSecretCreate(BaseModel):
         description="feature, training, inference or evaluation",
         title="Service Type",
     )
-
-
-class ServiceSecretRead(BaseModel):
-    """
-    A secret attached to an intelligence service. Carries no secret value.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    alias: str | None = Field(None, title="Alias")
-    id: str | None = Field(None, title="Id")
-    intelligence_id: str | None = Field(None, title="Intelligence Id")
-    secret_id: str | None = Field(None, title="Secret Id")
-    secret_name: str | None = Field(None, title="Secret Name")
-    service_type: str | None = Field(None, title="Service Type")
-
-
-class StartIntelligenceRequest(BaseModel):
-    """
-    Start an intelligence runtime.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    force_restart: bool | None = Field(False, title="Force Restart")
-    skip_infrastructure_check: bool | None = Field(
-        False, title="Skip Infrastructure Check"
-    )
-
-
-class StopIntelligenceRequest(BaseModel):
-    """
-    Stop an intelligence runtime.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    graceful: bool | None = Field(True, title="Graceful")
-    timeout_seconds: int | None = Field(30, title="Timeout Seconds")
-
-
-class StorageSpaceCreate(BaseModel):
-    """
-    Create a storage space. ``organization_id`` is set from the API key.
-    """
-
-    description: str | None = Field(None, title="Description")
-    is_default: bool | None = Field(False, title="Is Default")
-    name: str = Field(..., max_length=255, title="Name")
-    quota_bytes: int | None = Field(None, title="Quota Bytes")
-
-
-class StorageSpaceRead(BaseModel):
-    """
-    A storage space belonging to an organization.
-    """
-
-    created_at: AwareDatetime = Field(..., title="Created At")
-    created_by_user_id: UUID = Field(..., title="Created By User Id")
-    description: str | None = Field(None, title="Description")
-    id: UUID = Field(..., title="Id")
-    is_default: bool = Field(..., title="Is Default")
-    is_personal: bool = Field(..., title="Is Personal")
-    name: str = Field(..., title="Name")
-    organization_id: UUID | None = Field(None, title="Organization Id")
-    owner_user_id: UUID | None = Field(None, title="Owner User Id")
-    quota_bytes: int | None = Field(None, title="Quota Bytes")
-    updated_at: AwareDatetime = Field(..., title="Updated At")
-    used_bytes: int = Field(..., title="Used Bytes")
-
-
-class StorageSpaceUpdateName(RootModel[str]):
-    root: str = Field(..., description="New space name", max_length=255, title="Name")
-
-
-class QuotaBytes(RootModel[int]):
-    root: int = Field(
-        ..., description="Storage quota in bytes", ge=0, title="Quota Bytes"
-    )
-
-
-class StorageSpaceUpdate(BaseModel):
-    """
-    Fields to change on a storage space. Omitted fields are left alone.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    description: str | None = Field(
-        None, description="New description", title="Description"
-    )
-    is_default: bool | None = Field(
-        None,
-        description="Make this the organization's default space",
-        title="Is Default",
-    )
-    name: StorageSpaceUpdateName | None = Field(
-        None, description="New space name", title="Name"
-    )
-    quota_bytes: QuotaBytes | None = Field(
-        None, description="Storage quota in bytes", title="Quota Bytes"
-    )
-
-
-class StorageUsageRead(BaseModel):
-    """
-    Usage summary for a single storage space.
-    """
-
-    file_count: int = Field(..., title="File Count")
-    folder_count: int = Field(..., title="Folder Count")
-    quota_bytes: int | None = Field(None, title="Quota Bytes")
-    storage_space_id: UUID = Field(..., title="Storage Space Id")
-    storage_space_name: str = Field(..., title="Storage Space Name")
-    trashed_bytes: int | None = Field(0, title="Trashed Bytes")
-    trashed_file_count: int | None = Field(0, title="Trashed File Count")
-    used_bytes: int = Field(..., title="Used Bytes")
-
-
-class SubscriptionRead(BaseModel):
-    """
-    ``GET /v1/billing/subscription`` — the org's billing configuration record.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    azure_subscription_id: str | None = Field(None, title="Azure Subscription Id")
-    azure_tenant_id: str | None = Field(None, title="Azure Tenant Id")
-    billing_currency: str | None = Field(None, title="Billing Currency")
-    billing_cycle: str | None = Field(None, title="Billing Cycle")
-    created_at: str | None = Field(None, title="Created At")
-    csp_partner_id: str | None = Field(None, title="Csp Partner Id")
-    csp_partner_name: str | None = Field(None, title="Csp Partner Name")
-    default_compute_markup_percent: float | None = Field(
-        None, title="Default Compute Markup Percent"
-    )
-    default_llm_markup_percent: float | None = Field(
-        None, title="Default Llm Markup Percent"
-    )
-    default_storage_markup_percent: float | None = Field(
-        None, title="Default Storage Markup Percent"
-    )
-    default_transfer_markup_percent: float | None = Field(
-        None, title="Default Transfer Markup Percent"
-    )
-    id: str | None = Field(None, title="Id")
-    invoice_email: str | None = Field(None, title="Invoice Email")
-    is_active: bool | None = Field(None, title="Is Active")
-    markup_overrides: list[Any] | None = Field(None, title="Markup Overrides")
-    organization_id: str | None = Field(None, title="Organization Id")
-    updated_at: str | None = Field(None, title="Updated At")
-
-
-class SubscriptionReadV1(BaseModel):
-    """
-    One subscription.
-
-    Note: The subscriptions operation returns a **list**, even though its path is
-    singular — an organization may hold more than one.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    created_at: str = Field(..., title="Created At")
-    id: str = Field(..., title="Id")
-    organization_id: str = Field(..., title="Organization Id")
-    status: str | None = Field(None, title="Status")
-    tier_id: str | None = Field(None, title="Tier Id")
-    updated_at: str = Field(..., title="Updated At")

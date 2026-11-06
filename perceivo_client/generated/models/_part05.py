@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -12,45 +12,41 @@ from uuid import UUID
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
 
 
-class ComponentRunRequest(BaseModel):
+class ComponentPortRead(BaseModel):
     """
-    The input a component run is given.
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    artifact: ComponentRunArtifact | None = Field(
-        None, description="An artifact to supply alongside request_data."
-    )
-    request_data: dict[str, Any] | None = Field(
-        None,
-        description="The input payload handed to the component's entry point.",
-        title="Request Data",
-    )
-
-
-class ComponentRunResult(BaseModel):
-    """
-    The outcome of executing a component once.
+    Component port representation.
     """
 
     model_config = ConfigDict(
         extra="allow",
     )
-    errors: list[str] | None = Field(None, title="Errors")
-    execution_time_ms: float | None = Field(
-        0,
-        description="Wall-clock duration of the execution, in milliseconds.",
-        title="Execution Time Ms",
+    contract: dict[str, Any] | None = Field(None, title="Contract")
+    direction: str = Field(..., title="Direction")
+    id: str = Field(..., title="Id")
+    key: str = Field(..., title="Key")
+    label: str | None = Field(None, title="Label")
+    port_type: str | None = Field(None, title="Port Type")
+
+
+class ComponentRead(BaseModel):
+    """
+    Component resource representation.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
     )
-    logs: dict[str, Any] | None = Field(None, title="Logs")
-    output: dict[str, Any] | None = Field(None, title="Output")
-    success: bool = Field(
-        ...,
-        description="Whether the script ran to completion. A script that raised is reported here as false with the reason in errors — the operation itself still succeeds.",
-        title="Success",
-    )
+    asset_type: str = Field(..., title="Asset Type")
+    category: str | None = Field(None, title="Category")
+    created_at: str | None = Field(None, title="Created At")
+    created_by_user_id: str | None = Field(None, title="Created By User Id")
+    description: str | None = Field(None, title="Description")
+    id: str = Field(..., title="Id")
+    name: str = Field(..., title="Name")
+    organization_id: str = Field(..., title="Organization Id")
+    short_description: str | None = Field(None, title="Short Description")
+    tags: list[str] | None = Field(None, title="Tags")
+    updated_at: str | None = Field(None, title="Updated At")
 
 
 class ComponentTransferFsmState(BaseModel):
@@ -452,6 +448,8 @@ class CreateDriftBaselineRequest(BaseModel):
     sample_count: int = Field(
         ...,
         description="How many samples the reference data holds.",
+        ge=0,
+        le=2147483647,
         title="Sample Count",
     )
     source_end: str | None = Field(

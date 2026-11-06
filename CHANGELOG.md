@@ -5,6 +5,48 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-11-04
+
+A release alongside the matching `perceivo` SDK.
+
+### Changed
+
+- `client.intelligence.evaluate` returns `EvaluationQueued`, the `202` the API
+  answers when it queues the evaluation, not `EvaluationRead`. The request body
+  must carry `trigger_type`; a request without a body answers `422`.
+- The vendored `openapi/openapi-v1.json` and the generated models are refreshed
+  from the API's public document. `EvaluateRequest` replaces `config` with
+  `trigger_type`, `model_ids`, `auto_accept` and `window_hours`, and forbids
+  unknown fields. `StartIntelligenceRequest` no longer has
+  `skip_infrastructure_check`, and `ReviewerAssignmentRequest` no longer has
+  `required`. `TicketCreate.source` is the `TicketCreateSource` enum, and the
+  graph configuration's `retain_last_n` and `rolling_window_hours` carry their
+  bounds.
+- `client.experiments.delete` no longer tears down a running experiment: only a
+  `DRAFT`, `STOPPED` or `FAILED` experiment can be deleted, and any other status
+  answers `409` with nothing changed. Stop it, wait, then delete.
+- `client.intelligence.predict_batch` takes a `timeout_s` of at most 100, down
+  from 300.
+- `client.intelligence.predict` refuses a body with its inputs outside
+  `features` with `422`, where they used to be ignored.
+- `client.runs.list` is no longer limited to the 100 most recent workloads;
+  pages reach 10000 runs deep.
+- The API deprecates the routes behind `client.assets.copy`,
+  `client.assets.import_bundle` and `client.assets.restore`. Their docstrings
+  name the replacements.
+
+### Removed
+
+- The twelve thread methods, `client.threads` on `Client` and `AsyncClient`, with
+  `ThreadsResource`: `list`, `search`, `create`, `get`, `update`, `delete`,
+  `acknowledge`, `list_messages`, `create_message`, `list_participants`,
+  `add_participant` and `remove_participant`. They returned 403 for every API-key
+  caller in 1.0.0 and could never succeed.
+- `client.components.run`, on `Client` and `AsyncClient`. A component can be
+  validated with `client.components.validate`; it runs inside an orchestration,
+  not on its own.
+- The generated `Thread*` and `ComponentRun*` models, and `EvaluationRead`.
+
 ## [1.0.0] - 2026-10-19
 
 The first stable release of `perceivo-client`, the Python client for the

@@ -22,6 +22,10 @@ class AssetsResource(BaseResource):
     def copy(self, asset_id: str, body: dict[str, Any] | None = None) -> AssetRead:
         """Copy an asset you can read into one you own (``POST /assets/{asset_id}/copy``).
 
+        Deprecated by the API: copy through ``client.orchestrations`` or
+        ``client.capabilities`` instead. Components and intelligence have no
+        copy operation of their own yet.
+
         This is how a shared, read-only platform template becomes an asset you
         can update and run. ``body`` is an optional ``AssetCopyRequest``
         (``new_name``, ``organization_id``); omitted, an empty object is sent.
@@ -82,6 +86,10 @@ class AssetsResource(BaseResource):
     def import_bundle(self, body: dict[str, Any]) -> dict[str, Any]:
         """Create an asset from a bundle (``POST /assets/import``).
 
+        Deprecated by the API: import through ``client.orchestrations``,
+        ``client.intelligence`` or ``client.components`` instead. A capability
+        has no import operation.
+
         ``body`` is an ``AssetImportRequest``: ``bundle`` (what
         :meth:`export_bundle` returned) is required and ``organization_id``
         names the destination when the credential reaches more than one.
@@ -106,6 +114,10 @@ class AssetsResource(BaseResource):
 
     def restore(self, asset_id: str) -> AssetRead:
         """Return a soft-deleted asset to active use (``POST /assets/{asset_id}/restore``).
+
+        Deprecated by the API: restore through the type's own resource instead:
+        ``client.orchestrations``, ``client.capabilities``,
+        ``client.components`` or ``client.intelligence``.
 
         Restoring an active asset succeeds and returns it unchanged, so a retry
         is safe. Only assets your organization owns can be restored.

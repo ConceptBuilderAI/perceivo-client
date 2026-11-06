@@ -256,7 +256,6 @@ CASES = [
     (lambda c: c.components.list(), "GET", f"{B}/components"),
     (lambda c: c.components.replace_artifact("x0", {}), "PUT", f"{B}/components/x0/artifact"),
     (lambda c: c.components.restore("x0"), "POST", f"{B}/components/x0/restore"),
-    (lambda c: c.components.run("x0", {}), "POST", f"{B}/components/x0/run"),
     (lambda c: c.components.update("x0", {}), "PATCH", f"{B}/components/x0"),
     (lambda c: c.components.validate({}), "POST", f"{B}/components/validate"),
     # --- experiments ---

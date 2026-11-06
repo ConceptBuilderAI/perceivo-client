@@ -1,6 +1,6 @@
 # GENERATED CODE - DO NOT EDIT BY HAND.
 # Regenerate with: python openapi/regen.py (see CONTRIBUTING.md).
-# Source: openapi-v1.json, version 1.0.0, sha256 c7769c0bc51e6694b75353cd8f1a8155cbef0675f5aea3aae9979f1bb5457490
+# Source: openapi-v1.json, version 1.0.0, sha256 4cb0cc1fb62e540b6329e643c14e3ed2ef7982f14766508c71bd02701feb1b21
 
 from __future__ import annotations
 
@@ -10,6 +10,56 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+
+
+class ExecuteCapabilityRequest(BaseModel):
+    """
+    Run a capability. A prompt or input goes inside ``config``.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    artifact: dict[str, Any] | None = Field(
+        None, description="Artifact to send with the run.", title="Artifact"
+    )
+    config: dict[str, Any] | None = Field(
+        None, description="Request data for the run.", title="Config"
+    )
+
+
+class ExecuteResponseRead(BaseModel):
+    """
+    Response from executing an orchestration action.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    action: str | None = Field(None, title="Action")
+    message: str | None = Field(None, title="Message")
+    result: dict[str, Any] | None = Field(None, title="Result")
+    success: bool | None = Field(None, title="Success")
+    target_id: str | None = Field(None, title="Target Id")
+
+
+class ExecutionGraphBuildResponse(BaseModel):
+    """
+    Summary of a freshly-built execution graph.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    blob_path: str | None = Field(None, title="Blob Path")
+    capability_id: str | None = Field(None, title="Capability Id")
+    created_at: str | None = Field(None, title="Created At")
+    entry_count: int | None = Field(None, title="Entry Count")
+    graph_id: str | None = Field(None, title="Graph Id")
+    graph_type: str | None = Field(None, title="Graph Type")
+    orchestration_summary: dict[str, Any] | None = Field(
+        None, title="Orchestration Summary"
+    )
 
 
 class ExecutionGraphConfigRead(BaseModel):
@@ -425,45 +475,3 @@ class FileEntryRead(BaseModel):
 
 class FileEntryUpdateName(RootModel[str]):
     root: str = Field(..., description="New entry name", max_length=255, title="Name")
-
-
-class FileEntryUpdate(BaseModel):
-    """
-    Fields to change on a file or folder. Omitted fields are left alone.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    is_starred: bool | None = Field(
-        None, description="Star or unstar the entry", title="Is Starred"
-    )
-    name: FileEntryUpdateName | None = Field(
-        None, description="New entry name", title="Name"
-    )
-
-
-class FileTrashRestore(BaseModel):
-    """
-    The trashed files and folders to restore.
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    entry_ids: list[UUID] = Field(
-        ...,
-        description="The trashed files and folders to restore, one to a hundred",
-        max_length=100,
-        min_length=1,
-        title="Entry Ids",
-    )
-
-
-class FileUploadStatus(StrEnum):
-    """
-    completed when the file was stored; error when it was refused
-    """
-
-    completed = "completed"
-    error = "error"

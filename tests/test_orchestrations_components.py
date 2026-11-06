@@ -27,7 +27,6 @@ from perceivo_client.generated.models import (
     AssignCapabilityResultRead,
     CapabilityCompatibilityRead,
     ComponentDetailRead,
-    ComponentRunResult,
     ComponentUsageReport,
     LineageRestoreResult,
     NodeSecretRead,
@@ -248,16 +247,6 @@ def test_validate_returns_an_invalid_definition_as_a_result():
     assert rec.last.url.path == f"{_O}/validate"
 
 
-def test_run_returns_a_failed_component_run_as_a_result():
-    client, rec = make_client(json_handler({"success": False, "errors": ["boom"]}))
-
-    got = client.components.run("cmp-1", {"request_data": {"x": 1}})
-
-    assert isinstance(got, ComponentRunResult)
-    assert got.success is False
-    assert json.loads(rec.last.content) == {"request_data": {"x": 1}}
-
-
 def test_component_restore_is_a_bodiless_post():
     client, rec = make_client(json_handler({"id": "cmp-1", "status": "active"}))
 
@@ -334,16 +323,6 @@ def test_deletes_return_none_on_no_content(call, path):
 
 
 # --- async parity ------------------------------------------------------------------
-
-
-def test_async_component_run_awaits_and_hits_the_exact_path():
-    sync, rec = make_client(json_handler({"success": True, "output": {"y": 2}}))
-    client = _async_from_sync(sync)
-
-    got = asyncio.run(client.components.run("cmp-1", {"request_data": {}}))
-
-    assert isinstance(got, ComponentRunResult)
-    assert rec.last.url.path == f"{_C}/cmp-1/run"
 
 
 def test_async_restore_forwards_detach():

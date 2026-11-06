@@ -1,4 +1,4 @@
-"""Request-body cases, part 2: intelligence through threads."""
+"""Request-body cases, part 2: intelligence through reviews."""
 
 BODY_CASES = [
     # Intelligence serving.
@@ -155,12 +155,6 @@ BODY_CASES = [
         "PUT",
         "/v1/components/x0/artifact",
         "components.replace_artifact",
-    ),
-    (
-        lambda c: c.components.run("x0", {"probe": "components.run"}),
-        "POST",
-        "/v1/components/x0/run",
-        "components.run",
     ),
     (
         lambda c: c.orchestrations.assign_capability(
@@ -384,29 +378,5 @@ BODY_CASES = [
         "PUT",
         "/v1/reviews/x0/draft",
         "reviews.save_draft",
-    ),
-    (
-        lambda c: c.threads.add_participant("x0", {"probe": "threads.add_participant"}),
-        "POST",
-        "/v1/threads/x0/participants",
-        "threads.add_participant",
-    ),
-    (
-        lambda c: c.threads.create({"probe": "threads.create"}),
-        "POST",
-        "/v1/threads",
-        "threads.create",
-    ),
-    (
-        lambda c: c.threads.create_message("x0", {"probe": "threads.create_message"}),
-        "POST",
-        "/v1/threads/x0/messages",
-        "threads.create_message",
-    ),
-    (
-        lambda c: c.threads.update("x0", {"probe": "threads.update"}),
-        "PATCH",
-        "/v1/threads/x0",
-        "threads.update",
     ),
 ]

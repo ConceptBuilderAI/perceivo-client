@@ -55,8 +55,8 @@ class _TrafficMixin(_MixinBase):
 
         Calls ``GET /capabilities/{capability_id}/traffic``.
 
-        ``None`` when the capability has no live plan, and the same ``None`` when the
-        capability is not yours or does not exist: the three are deliberately
+        ``None`` when the capability is yours and has no live plan. A capability that
+        does not exist, or that is not yours, answers ``404``; the two are deliberately
         indistinguishable. :meth:`replace_traffic` writes the plan.
 
         Args:
@@ -68,8 +68,9 @@ class _TrafficMixin(_MixinBase):
         Raises:
             ValueError: If ``capability_id`` is empty, ``.`` or ``..`` (refused
                 before the request is sent).
-            PerceivoAPIError: On an error response: ``422`` (``PerceivoValidationError``) for a
-                malformed request. An unknown capability answers ``None``, not ``404``.
+            PerceivoAPIError: On an error response: ``404`` (``PerceivoNotFoundError``) for a
+                capability that does not exist or is not yours, ``422``
+                (``PerceivoValidationError``) for a malformed request.
             PerceivoConnectionError: If the API cannot be reached.
         """
         return self._model(

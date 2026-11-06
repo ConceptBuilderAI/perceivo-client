@@ -5,6 +5,11 @@ orchestrations and capabilities, read run results, manage components, files and
 webhooks, and inspect your organization's access from agents, CI pipelines and
 your own applications.
 
+[![PyPI](https://img.shields.io/pypi/v/perceivo-client.svg)](https://pypi.org/project/perceivo-client/)
+[![Python versions](https://img.shields.io/pypi/pyversions/perceivo-client.svg)](https://pypi.org/project/perceivo-client/)
+[![CI](https://github.com/ConceptBuilderAI/perceivo-client/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ConceptBuilderAI/perceivo-client/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/ConceptBuilderAI/perceivo-client/blob/HEAD/LICENSE)
+
 `perceivo-client` is a typed REST client: responses are Pydantic v2 models
 generated from the public OpenAPI contract, and every error is a typed
 exception. It is a separate package from `perceivo`, the component-authoring
@@ -241,11 +246,8 @@ Other list operations page differently:
   `paginate()`, for example `paginate(client.grants.list, grantee_type="user")`.
 - **Cursor:** `client.operations.list` takes `cursor=`; pass the previous page's
   `next` until it is absent.
-- **`data`/`next` pages:** `client.threads.list`, `client.threads.search` and
-  `client.intelligence.list_inference_requests`. Pass `page=n` until `next` is
-  null.
-- **Backwards by time:** `client.threads.list_messages`. Pass the oldest
-  message's `created_at` as `before` while `has_more` is true.
+- **`data`/`next` pages:** `client.intelligence.list_inference_requests`. Pass
+  `page=n` until `next` is null.
 - **Page-local totals:** `client.runs.list` counts only the returned page in
   `total` (so `paginate_pages()` refuses it), and the store reads `client.infrastructure.list_search_index_documents`
   and `list_vector_store_entities` answer in each store's own shape. Request
@@ -253,8 +255,8 @@ Other list operations page differently:
 - **Whole lists:** `client.roles.list`, `client.service_accounts.list`,
   `client.groups.list`, `client.webhooks.list`, `client.secrets.list` without
   `page`, and the bare-array lists (`client.intelligence.list_predictions`,
-  training configurations and groups, triggers, node secret bindings, drafts and
-  thread participants) return every row in one response.
+  training configurations and groups, triggers, node secret bindings and
+  drafts) return every row in one response.
 
 `AsyncClient` offers the same helpers as methods:
 
@@ -326,7 +328,7 @@ The client mirrors the API's domain groups:
 | `client.organization` | Organization | `get`, `get_limits`, `get_subscription` |
 | `client.members` | Members | `list`, `invite`, `update_role`, `remove`, `restore` |
 | `client.invitations` | Invitations | `list`, `cancel`, `resend` |
-| `client.groups` | Groups | `list/create/get/update/delete`, `list_members`, `update_member`, `remove_member` |
+| `client.groups` | Groups | `list/create/get/update/delete`, `list_members`, `add_member`, `update_member`, `remove_member`, `remove_principal` |
 | `client.grants` | Access grants | `list`, `create`, `update`, `delete`, `preview`, `apply` |
 | `client.orchestrations` | Orchestrations | `list/create/get/update/delete`, `run`, `import_bundle`, `export_bundle`, `list_drafts`, `create/get/update/delete_draft`, `publish_draft`, `validate`, `assign_capability`, `get_compatibility`, `copy`, `get_graph`, `get_lineage`, `delete_version`, `restore`, `list_node_secret_bindings`, `get_node_secret_aliases` |
 | `client.runs` | Runs | `list`, `get`, `logs`, `events`, `steps`, `result`, `artifacts`, `pause`, `resume`, `stop`, `cancel` |
@@ -339,12 +341,11 @@ The client mirrors the API's domain groups:
 | `client.queue` | Queue | `list`, `get_summary`, `cancel_item`, `cancel` |
 | `client.assets` | Assets | `copy`, `export_bundle`, `import_bundle`, `restore` |
 | `client.experiments` | Experiments | `list/create/get/update/delete`, `run`, `get_session`, `stop` |
-| `client.components` | Components | `list/create/get/update/delete`, `validate`, `export_bundle`, `import_bundle`, `get_artifact`, `replace_artifact`, `get_dependents`, `run`, `get_lineage`, `delete_version`, `restore` |
+| `client.components` | Components | `list/create/get/update/delete`, `validate`, `export_bundle`, `import_bundle`, `get_artifact`, `replace_artifact`, `get_dependents`, `get_lineage`, `delete_version`, `restore` |
 | `client.files` | Files & Storage | `list_spaces`, `get_space`, `create_space`, `update_space`, `delete_space`, `get_space_usage`, `list_entries`, `create_entry`, `get_entry`, `update_entry`, `delete_entry`, `copy`, `move`, `upload`, `create_upload_url`, `create_upload_urls`, `register_entries`, `replace_content`, `download`, `list_trash`, `empty_trash`, `restore_entry`, `restore_entries` |
 | `client.reviews` | Reviews | `list/get/update`, `start`, `complete`, `start_and_complete`, `assign`, `save_draft`, `cancel` |
 | `client.support` | Support | `list/create/get/update`, `list_comments`, `create_comment`, `list_attachments`, `create_attachment`, `get_attachment_content`, `delete_attachment` |
-| `client.threads` | Messaging | `list/create/get/update/delete`, `search`, `acknowledge`, `list_messages`, `create_message`, `list_participants`, `add_participant`, `remove_participant` |
-| `client.infrastructure` | Infrastructure | `get`; cluster services (`list/get/update/start/stop_cluster_service(s)`); search index (`list_search_indices`, `get/create/delete_search_index`, `list_search_index_documents`, `add/delete_search_index_document`, `query/export/import/ingest_search_index`); vector store (`list/get/create/delete_vector_store_collection(s)`, `list/add_vector_store_entities`, `delete_vector_store_entity`, `query/export/import/ingest_vector_store_collection`); ingest jobs on either store (`create/list/get/cancel/resume_{vector_store,search_index}_ingest_job(s)`, `list_{vector_store,search_index}_ingest_job_files`); cache (`list_cache_keys`, `get_cache_key`, `ingest_cache`); MCP (`get/replace_mcp_config`, `list_mcp_tools`, `invoke_mcp_tool`); nodepools (`list/create/get/update/scale/delete_nodepool(s)`); managed services and backups (`list/get/update/start/stop_managed_service(s)`, `list/get/create_managed_service_backup(s)`); dedicated databases (`get_database`, `start_database`, `record_database_activity`); `get_capacity` |
+| `client.infrastructure` | Infrastructure | `get`; cluster services (`list/get/update/start/stop_cluster_service(s)`); search index (`list_search_indices`, `get/create/delete_search_index`, `list_search_index_documents`, `add/delete_search_index_document`, `query/export/import/ingest_search_index`); vector store (`list/get/create/delete_vector_store_collection(s)`, `list/add_vector_store_entities`, `delete_vector_store_entity`, `query/export/import/ingest_vector_store_collection`); ingest jobs on either store (`create/list/get/cancel/resume_{vector_store,search_index}_ingest_job(s)`, `list_{vector_store,search_index}_ingest_job_files`); cache (`list_cache_keys`, `get_cache_key`, `ingest_cache`); MCP (`get/replace_mcp_config`; server start, stop and status through the cluster service methods; `list_mcp_tools` and `invoke_mcp_tool` are unavailable in this release and return a 503); nodepools (`list/create/get/update/scale/delete_nodepool(s)`); managed services and backups (`list/get/update/start/stop_managed_service(s)`, `list/get/create_managed_service_backup(s)`); dedicated databases (`get_database`, `start_database`, `record_database_activity`); `get_capacity` |
 | `client.webhooks` | Webhooks | `list/create/get/update/delete`, `list_deliveries`, `get_delivery`, `test`, `list_event_types` |
 | `client.service_accounts` | Service accounts | `list/create/get/update`, `rotate`, `unlock`, `delete` (returns the `ServiceAccountRevoked` receipt) |
 | `client.alerts` | Alerts | `list`, `get`, `get_summary`, `acknowledge`, `resolve` |

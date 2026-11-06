@@ -186,12 +186,6 @@ _ROWS = [
         id="components.restore",
     ),
     pytest.param(
-        lambda c: c.components.run("../x0", {}),
-        "POST",
-        f"{B}/components/..%2Fx0/run",
-        id="components.run",
-    ),
-    pytest.param(
         lambda c: c.experiments.delete("../x0"),
         "DELETE",
         f"{B}/experiments/..%2Fx0",
@@ -332,5 +326,5 @@ def test_the_async_client_sends_the_same_encoded_segment(call, verb, raw_path):
     assert rec.last.url.raw_path.split(b"?")[0] == raw_path.encode()
 
 
-def test_the_table_covers_48_methods():
-    assert len(_ROWS) == 48
+def test_the_table_covers_47_methods():
+    assert len(_ROWS) == 47

@@ -69,9 +69,9 @@ class RunsResource(BaseResource):
     ) -> RunPage:
         """List the organization's runs, newest first (``GET /orchestrations/runs``).
 
-        Runs are collected from the organization's 100 most recently created
-        workloads; read an older run by ``run_id``. A key without
-        ``WORKLOAD_READ`` sees only the runs of workloads it started.
+        Pages reach 10000 runs deep: ``(page - 1) * page_size`` may not exceed
+        that. A key without ``WORKLOAD_READ`` sees only the runs of workloads it
+        started.
 
         :func:`perceivo_client.paginate_pages` refuses this method, because
         ``total`` counts only the runs in the returned page. Page it yourself:
@@ -81,7 +81,8 @@ class RunsResource(BaseResource):
         Args:
             status: Run state to filter on (for example ``"RUNNING"``,
                 case-insensitive), sent as ``filter[status]``. Omit it for
-                every state.
+                every state. A value that names no status returns an empty
+                page.
             page: Page number from ``1``. Omitted, the API answers page ``1``.
             page_size: Runs per page, at most ``100``. Omitted, the API uses
                 ``20``.
@@ -95,8 +96,8 @@ class RunsResource(BaseResource):
                 (``PerceivoValidationError``) for a ``page`` or ``page_size``
                 out of range, ``502`` (``PerceivoServerError``) when the
                 platform answers with something that is not a run list, and
-                ``504`` (``PerceivoServerError``) when the runs cannot be
-                collected in time; nothing was read, so retry.
+                ``504`` (``PerceivoServerError``) when the platform does not
+                answer in time; retry either.
             PerceivoConnectionError: If the API cannot be reached.
         """
         params = {"filter[status]": status, "page": page, "page_size": page_size}
